@@ -1,0 +1,119 @@
+/* ==========================================================================
+   Design tokens — phong cách "game studio vui nhộn"
+   Lấy cảm hứng: nền màu bão hoà mạnh (hồng magenta, tím, vàng), chữ display
+   đậm dạng condensed in hoa, nút dạng viên thuốc có "đáy 3D", mép section
+   nghiêng/bo lớn, nền kem ấm cho phần nội dung đọc.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Anton&family=Kanit:wght@500;600;700&family=Rubik:wght@400;500;700&display=swap");
+
+:root {
+  /* ---------- Màu thương hiệu ---------- */
+  --color-magenta-300: #ff6fa6;
+  --color-magenta-500: #e8196b;   /* màu chủ đạo */
+  --color-magenta-700: #a80f4c;   /* đáy 3D / hover */
+
+  --color-purple-300: #d39bff;
+  --color-purple-500: #a93cf5;    /* màu phụ */
+  --color-purple-700: #6e1fb0;
+
+  --color-yellow-300: #ffe766;
+  --color-yellow-500: #ffd200;    /* nhấn / CTA phụ */
+  --color-yellow-700: #c99a00;
+
+  --color-orange-500: #ff7a2e;    /* điểm nhấn nhân vật / huy hiệu */
+  --color-sky-500:    #4fa8ff;    /* thông tin */
+  --color-green-500:  #2fc46b;    /* thành công */
+
+  /* ---------- Trung tính ---------- */
+  --color-ink-900:   #1c1b1f;     /* chữ chính, nền tối */
+  --color-ink-800:   #26252a;     /* section tối */
+  --color-ink-600:   #4a4850;
+  --color-ink-400:   #8a8792;
+  --color-ink-200:   #d9d6cf;
+  --color-cream-100: #fdfbf3;     /* nền nội dung */
+  --color-cream-200: #f4f1e6;
+  --color-white:     #ffffff;
+
+  /* ---------- Màu theo vai trò ---------- */
+  --color-bg:            var(--color-cream-100);
+  --color-surface:       var(--color-white);
+  --color-surface-alt:   var(--color-cream-200);
+  --color-text:          var(--color-ink-900);
+  --color-text-muted:    var(--color-ink-600);
+  --color-text-inverse:  var(--color-cream-100);
+  --color-border:        var(--color-ink-200);
+  --color-primary:       var(--color-magenta-500);
+  --color-primary-deep:  var(--color-magenta-700);
+  --color-secondary:     var(--color-purple-500);
+  --color-secondary-deep:var(--color-purple-700);
+  --color-accent:        var(--color-yellow-500);
+  --color-accent-deep:   var(--color-yellow-700);
+  --color-danger:        #e5352b;
+  --color-success:       var(--color-green-500);
+  --color-focus:         var(--color-sky-500);
+
+  /* ---------- Kiểu chữ ---------- */
+  --font-display: "Anton", "Impact", "Arial Narrow Bold", sans-serif;  /* tiêu đề in hoa */
+  --font-ui:      "Kanit", "Rubik", system-ui, sans-serif;             /* nút, nhãn */
+  --font-body:    "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --font-weight-regular: 400;
+  --font-weight-medium:  500;
+  --font-weight-semibold:600;
+  --font-weight-bold:    700;
+
+  /* ---------- Cỡ chữ (thang 1.25, tiêu đề co giãn) ---------- */
+  --text-xs:   0.75rem;   /* 12 */
+  --text-sm:   0.875rem;  /* 14 */
+  --text-base: 1rem;      /* 16 */
+  --text-lg:   1.125rem;  /* 18 */
+  --text-xl:   1.375rem;  /* 22 */
+  --text-2xl:  1.75rem;   /* 28 */
+  --text-3xl:  clamp(2rem, 1.4rem + 2.4vw, 3rem);       /* 32→48 */
+  --text-4xl:  clamp(2.5rem, 1.6rem + 3.8vw, 4.5rem);   /* 40→72 */
+  --text-5xl:  clamp(3rem, 1.6rem + 6vw, 7.5rem);       /* 48→120  hero */
+
+  --leading-display: 1.02;   /* đủ chỗ cho dấu tiếng Việt chồng tầng (Ả, Ế) */
+  --leading-tight:   1.15;
+  --leading-body:    1.55;
+  --tracking-display: 0.005em;
+  --tracking-ui:      0.01em;
+
+  /* ---------- Khoảng cách (bước 4px) ---------- */
+  --space-0:  0;
+  --space-1:  0.25rem;  /* 4  */
+  --space-2:  0.5rem;   /* 8  */
+  --space-3:  0.75rem;  /* 12 */
+  --space-4:  1rem;     /* 16 */
+  --space-5:  1.5rem;   /* 24 */
+  --space-6:  2rem;     /* 32 */
+  --space-7:  3rem;     /* 48 */
+  --space-8:  4rem;     /* 64 */
+  --space-9:  6rem;     /* 96 */
+  --space-10: 8rem;     /* 128 */
+
+  /* ---------- Bo góc ---------- */
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   14px;   /* thẻ, ô nhập */
+  --radius-lg:   24px;   /* ảnh, khối nội dung */
+  --radius-xl:   48px;   /* mép section lớn */
+  --radius-pill: 999px;  /* nút */
+
+  /* ---------- Đổ bóng ---------- */
+  --shadow-sm:   0 1px 2px rgb(28 27 31 / 0.08);
+  --shadow-md:   0 6px 18px rgb(28 27 31 / 0.10);
+  --shadow-lg:   0 18px 40px rgb(28 27 31 / 0.18);
+  --shadow-3d:   0 5px 0 0;          /* dùng với màu: box-shadow: var(--shadow-3d) var(--color-primary-deep) */
+  --shadow-3d-pressed: 0 1px 0 0;
+
+  /* ---------- Chuyển động ---------- */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+
+  /* ---------- Hình khối ---------- */
+  --skew-section: -2deg;   /* độ nghiêng mép section */
+}
