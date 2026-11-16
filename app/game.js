@@ -128,6 +128,27 @@
   }
 
   /* ---------- 6. Lưới ---------- */
+  /* FN-14: nếu ảnh không tải được, ô vẫn chơi được — rơi về emoji */
+  function makeFallback(char, modifier) {
+    var span = document.createElement('span');
+    span.className = 'mouse__fallback ' + modifier;
+    span.textContent = char;
+    span.setAttribute('aria-hidden', 'true');
+    return span;
+  }
+
+  function onArtBroken() { board.classList.add('is-art-broken'); }
+
+  function makeMouseImg(file, modifier) {
+    var img = document.createElement('img');
+    img.className = 'mouse__img ' + modifier;
+    img.src = '../assets/' + file;
+    img.alt = '';            // hình trang trí, trạng thái đã có ở aria-label của ô
+    img.draggable = false;
+    img.addEventListener('error', onArtBroken);
+    return img;
+  }
+
   function buildBoard() {
     var frag = document.createDocumentFragment();
     for (var i = 0; i < GRID_SIZE; i++) {
@@ -138,10 +159,16 @@
       el.dataset.mouse = 'none';
       el.disabled = true;                       // chỉ mở khóa khi PLAYING
       el.setAttribute('aria-label', 'Hang ' + (i + 1) + ' — trống');
+      var mouth = document.createElement('span');
+      mouth.className = 'hole__mouth';
       var mouse = document.createElement('span');
       mouse.className = 'mouse';
-      mouse.textContent = '🐭';
-      el.appendChild(mouse);
+      mouse.appendChild(makeMouseImg('mouse.png', 'mouse__img--up'));
+      mouse.appendChild(makeMouseImg('mouse-stunned.png', 'mouse__img--hit'));
+      mouse.appendChild(makeFallback('🐭', 'mouse__fallback--up'));
+      mouse.appendChild(makeFallback('😵', 'mouse__fallback--hit'));
+      mouth.appendChild(mouse);
+      el.appendChild(mouth);
       frag.appendChild(el);
       holes.push({ el: el, mouse: mouse });
     }
@@ -180,7 +207,6 @@
     if (state.activeHole === null) return;
     var i = state.activeHole;
     setMouseState(i, 'none');
-    holes[i].mouse.textContent = '🐭';
     state.lastHole = i;          // cập nhật khi chuột rời mặt đất, dù vì lý do gì
     state.activeHole = null;
     state.isWhacked = false;
@@ -229,7 +255,6 @@
 
     clearTimer('down');
     setMouseState(index, 'hit');
-    holes[index].mouse.textContent = '😵';
     showPlusOne(index);
     sfxHit();
 
