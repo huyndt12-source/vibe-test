@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tài liệu game Đập Chuột</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="topbar__brand" href="index.html">Đập Chuột · Docs</a>
+  <nav class="topbar__nav">
+    <a href="index.html" aria-current="page">Mục lục</a>
+    <a href="01-tong-quan.html">01 Tổng quan</a>
+    <a href="02-chuc-nang.html">02 Chức năng</a>
+    <a href="03-man-hinh.html">03 Màn hình</a>
+    <a href="04-quy-tac-du-lieu.html">04 Quy tắc &amp; dữ liệu</a>
+    <a href="05-ke-hoach-test.html">05 Kế hoạch test</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__kicker">Tài liệu đặc tả · phiên bản 1.0 · 16/11/2026</p>
+    <h1>Mini game Đập Chuột</h1>
+    <p>Bộ tài liệu đặc tả đầy đủ cho mini game chạy trên trình duyệt: lưới 3×3, một lượt 30 giây, mỗi lần đập trúng được 1 điểm. Viết cho lập trình viên sẽ code game — chưa có code trong phiên bản tài liệu này.</p>
+  </div>
+</section>
+
+<main>
+  <h2>Mục lục</h2>
+  <ul class="toc">
+    <li><a href="01-tong-quan.html">
+      <span class="toc__step">01</span>
+      <p class="toc__title">Tổng quan</p>
+      <p class="toc__desc">Mục tiêu sản phẩm, người chơi, phạm vi làm / không làm, ràng buộc kỹ thuật, các quyết định thiết kế đã chốt.</p>
+    </a></li>
+    <li><a href="02-chuc-nang.html">
+      <span class="toc__step">02</span>
+      <p class="toc__title">Chức năng</p>
+      <p class="toc__desc">Danh sách chức năng có mã FN-xx, luồng một lượt chơi, vòng đời con chuột, đồng hồ, âm thanh.</p>
+    </a></li>
+    <li><a href="03-man-hinh.html">
+      <span class="toc__step">03</span>
+      <p class="toc__title">Màn hình</p>
+      <p class="toc__desc">Ba màn hình (bắt đầu / chơi / kết thúc), wireframe, thành phần UI, token giao diện, responsive và a11y.</p>
+    </a></li>
+    <li><a href="04-quy-tac-du-lieu.html">
+      <span class="toc__step">04</span>
+      <p class="toc__title">Quy tắc &amp; dữ liệu</p>
+      <p class="toc__desc">Hằng số, state machine, mô hình state, quy tắc tính điểm, khóa localStorage, xử lý edge case.</p>
+    </a></li>
+    <li><a href="05-ke-hoach-test.html">
+      <span class="toc__step">05</span>
+      <p class="toc__title">Kế hoạch test</p>
+      <p class="toc__desc">Ca test thủ công theo checklist, bám 1-1 vào mục “Tiêu chí hoàn thành” của YEU-CAU.md.</p>
+    </a></li>
+  </ul>
+
+  <h2>Đọc nhanh</h2>
+  <div class="grid grid--3">
+    <div class="card"><span class="card__num">3×3</span>Lưới 9 ô, tối đa 1 chuột hiện cùng lúc.</div>
+    <div class="card"><span class="card__num">30 s</span>Một lượt chơi, đồng hồ đếm ngược 30 → 0.</div>
+    <div class="card"><span class="card__num">+1</span>Mỗi con chuột chỉ tính điểm đúng một lần.</div>
+  </div>
+
+  <div class="note">
+    <p class="note__title">Nguồn sự thật</p>
+    <p>Tài liệu này diễn giải và chi tiết hóa <code>YEU-CAU.md</code>. Khi có xung đột, <code>YEU-CAU.md</code> thắng. Giao diện dùng token trong <code>design/tokens.css</code>.</p>
+  </div>
+</main>
+
+<footer><div class="inner">
+  <span>Đập Chuột — tài liệu đặc tả v1.0</span>
+  <span><a href="../YEU-CAU.md">YEU-CAU.md</a> · <a href="../design/design-system.html">Design system</a></span>
+</div></footer>
+</body>
+</html>

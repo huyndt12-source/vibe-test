@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 · Tổng quan — Đập Chuột</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="topbar__brand" href="index.html">Đập Chuột · Docs</a>
+  <nav class="topbar__nav">
+    <a href="index.html">Mục lục</a>
+    <a href="01-tong-quan.html" aria-current="page">01 Tổng quan</a>
+    <a href="02-chuc-nang.html">02 Chức năng</a>
+    <a href="03-man-hinh.html">03 Màn hình</a>
+    <a href="04-quy-tac-du-lieu.html">04 Quy tắc &amp; dữ liệu</a>
+    <a href="05-ke-hoach-test.html">05 Kế hoạch test</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__kicker">Tài liệu 01</p>
+    <h1>Tổng quan</h1>
+    <p>Game là gì, dành cho ai, làm gì và không làm gì, chạy trong môi trường nào.</p>
+  </div>
+</section>
+
+<main>
+  <h2>1. Mô tả một câu</h2>
+  <p><strong>Đập Chuột</strong> là mini game trên trình duyệt: người chơi có 30 giây để bấm trúng càng nhiều chuột càng tốt trên lưới 3×3. Mỗi lần đập trúng được 1 điểm; điểm cao nhất được lưu lại trên máy người chơi.</p>
+
+  <h2>2. Mục tiêu</h2>
+  <div class="grid grid--2">
+    <div class="card">
+      <h4>Mục tiêu sản phẩm</h4>
+      <ul>
+        <li>Chơi được ngay trong vòng 5 giây kể từ khi mở trang — không hướng dẫn dài, không đăng nhập.</li>
+        <li>Một lượt ngắn (30 giây) để khuyến khích chơi lại nhiều lần.</li>
+        <li>Có kỷ lục cá nhân để tạo động lực “phá kỷ lục”.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Mục tiêu kỹ thuật</h4>
+      <ul>
+        <li>Một file HTML mở trực tiếp là chạy: không cần cài đặt, không cần server, không build.</li>
+        <li>Không phụ thuộc thư viện ngoài, không gọi mạng.</li>
+        <li>Không có lỗi trong Console suốt một lượt chơi và các lượt chơi lại.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>3. Người chơi mục tiêu</h2>
+  <p>Người dùng phổ thông, mọi lứa tuổi, chơi lẻ một mình trong vài phút rảnh. Chơi bằng chuột trên máy tính hoặc chạm trên điện thoại. Không giả định người chơi từng đọc luật trước đó — luật phải hiện ngay trên màn hình bắt đầu, gói trong 1–2 dòng.</p>
+
+  <h2>4. Phạm vi</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:9rem">Trạng thái</th><th>Nội dung</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge--must">Trong phạm vi</span></td><td>Lưới 3×3 cố định 9 ô; một lượt 30 giây; tối đa 1 chuột hiện cùng lúc; tính điểm +1 mỗi con; lưu điểm cao nhất bằng <code>localStorage</code>; ba màn hình bắt đầu / chơi / kết thúc; hoạt động trên máy tính và điện thoại từ 360px.</td></tr>
+      <tr><td><span class="badge badge--should">Có, đã chốt</span></td><td>Hiệu ứng chuột trồi lên / thụt xuống ngắn, thân dưới bị miệng hang che; phản hồi khi đập trúng (hiện “+1”, ô nháy sáng, chuột đổi sang ảnh “bị choáng”); đồng hồ đổi màu đỏ khi còn ≤ 5 giây; âm thanh SFX đơn giản kèm nút bật/tắt (mặc định bật); con trỏ hình búa trên bàn chơi.</td></tr>
+      <tr><td><span class="badge badge--out">Ngoài phạm vi</span></td><td>Nhiều cấp độ hoặc tăng tốc theo thời gian; nhiều loại chuột (chuột vàng, bom); bảng xếp hạng online, đăng nhập, lưu trên server; cho người chơi chọn thời lượng khác 30 giây; đa ngôn ngữ; chế độ nhiều người chơi.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>5. Quyết định thiết kế đã chốt</h2>
+  <p>Những điểm <code>YEU-CAU.md</code> để mở, đã chốt trong buổi làm rõ yêu cầu:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:10rem">Hạng mục</th><th>Quyết định</th><th>Lý do</th></tr></thead>
+    <tbody>
+      <tr><td>Hình con chuột</td><td><strong>Ảnh PNG kiểu 3D cartoon</strong> (chuột xám, tai hồng, mắt to, răng cửa) đặt trong thư mục <code>assets/</code> cạnh <code>index.html</code>. Hai trạng thái: bình thường và bị choáng. Hang là hình tròn tối có vành dày kiểu máy arcade.</td><td>Đạt đúng phong cách máy “đập chuột” ở khu trò chơi; ảnh tương đối nên mở bằng <code>file://</code> vẫn chạy.</td></tr>
+      <tr><td>Âm thanh</td><td>Có SFX sinh bằng Web Audio API (không cần file mp3): tiếng đập trúng, tiếng hết giờ. Có nút bật/tắt, <strong>mặc định bật</strong>, trạng thái lưu cùng <code>localStorage</code>.</td><td>Tăng cảm giác phản hồi mà vẫn không cần asset ngoài.</td></tr>
+      <tr><td>Cấu trúc màn hình</td><td>Một file <code>index.html</code> duy nhất, ba <code>&lt;section&gt;</code> được ẩn/hiện theo state.</td><td>Không cần truyền điểm giữa các trang, không cần server.</td></tr>
+      <tr><td>Mức độ test</td><td>Test thủ công theo checklist, bám 1-1 vào mục “Tiêu chí hoàn thành”.</td><td>Phù hợp quy mô mini game; không dựng hạ tầng test tự động.</td></tr>
+      <tr><td>Đối tượng tài liệu</td><td>Lập trình viên sẽ code game: có hằng số, state machine, edge case cụ thể.</td><td>Tài liệu đủ để code ngay mà không cần hỏi lại.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>6. Ràng buộc kỹ thuật</h2>
+  <ul>
+    <li><strong>Nền tảng:</strong> bản mới của Chrome, Safari, Firefox, Edge (desktop và mobile).</li>
+    <li><strong>Phân phối:</strong> một file HTML tĩnh kèm thư mục <code>assets/</code> (ảnh chuột). Giữ nguyên cấu trúc thư mục thì mở bằng giao thức <code>file://</code> vẫn chạy đúng.</li>
+    <li><strong>Phụ thuộc:</strong> không framework, không thư viện ngoài, không gói cài đặt. Tài nguyên duy nhất là vài file ảnh PNG đi kèm. Font của design system tải từ Google Fonts nhưng phải có font dự phòng hệ thống để chạy được khi offline.</li>
+    <li><strong>Lưu trữ:</strong> chỉ <code>localStorage</code>. Nếu trình duyệt chặn (chế độ riêng tư, chính sách <code>file://</code>), game vẫn chạy bình thường, chỉ không giữ được kỷ lục.</li>
+    <li><strong>Kích thước màn hình nhỏ nhất:</strong> 360px chiều rộng; mỗi ô lưới tối thiểu ~80×80px trên điện thoại; không cuộn ngang.</li>
+  </ul>
+
+  <h2>7. Giao diện</h2>
+  <p>Toàn bộ màu, font, khoảng cách, bo góc, đổ bóng và chuyển động lấy từ <code>design/tokens.css</code> — phong cách “game studio vui nhộn”: nền bão hoà mạnh, chữ display in hoa dạng condensed, nút viên thuốc có “đáy 3D”. Không đặt giá trị màu hay cỡ chữ cứng trong code game; luôn dùng biến CSS. Chi tiết ở <a href="03-man-hinh.html">03 · Màn hình</a>.</p>
+
+  <h2>8. Thuật ngữ</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:10rem">Thuật ngữ</th><th>Nghĩa trong tài liệu này</th></tr></thead>
+    <tbody>
+      <tr><td>Lượt chơi (round)</td><td>Một phiên 30 giây, từ khi bấm “Bắt đầu” / “Chơi lại” tới khi đồng hồ về 0.</td></tr>
+      <tr><td>Ô / hang (hole)</td><td>Một trong 9 ô của lưới 3×3, đánh số 0–8.</td></tr>
+      <tr><td>Lần xuất hiện (spawn)</td><td>Một chu kỳ chuột trồi lên ở một ô, tồn tại 0,6–1,2 giây rồi thụt xuống hoặc bị đập.</td></tr>
+      <tr><td>Khoảng nghỉ (gap)</td><td>0,2–0,5 giây giữa hai lần xuất hiện, không có chuột nào trên mặt đất.</td></tr>
+      <tr><td>Đập trúng (hit)</td><td>Bấm vào ô đang có chuột chưa bị đập → +1 điểm.</td></tr>
+      <tr><td>Kỷ lục (high score)</td><td>Điểm cao nhất từng đạt trên trình duyệt này, lưu ở <code>localStorage</code>.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="pager">
+    <a href="index.html">← Mục lục</a>
+    <a href="02-chuc-nang.html">02 · Chức năng →</a>
+  </div>
+</main>
+
+<footer><div class="inner">
+  <span>Đập Chuột — tài liệu đặc tả v1.0</span>
+  <span><a href="../YEU-CAU.md">YEU-CAU.md</a></span>
+</div></footer>
+</body>
+</html>

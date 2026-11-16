@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02 · Chức năng — Đập Chuột</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="topbar__brand" href="index.html">Đập Chuột · Docs</a>
+  <nav class="topbar__nav">
+    <a href="index.html">Mục lục</a>
+    <a href="01-tong-quan.html">01 Tổng quan</a>
+    <a href="02-chuc-nang.html" aria-current="page">02 Chức năng</a>
+    <a href="03-man-hinh.html">03 Màn hình</a>
+    <a href="04-quy-tac-du-lieu.html">04 Quy tắc &amp; dữ liệu</a>
+    <a href="05-ke-hoach-test.html">05 Kế hoạch test</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__kicker">Tài liệu 02</p>
+    <h1>Chức năng</h1>
+    <p>Danh sách chức năng có mã, luồng một lượt chơi, vòng đời con chuột, đồng hồ và âm thanh.</p>
+  </div>
+</section>
+
+<main>
+  <h2>1. Danh sách chức năng</h2>
+  <p>Mỗi chức năng có mã <code>FN-xx</code> để kế hoạch test tham chiếu.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:5rem">Mã</th><th style="width:12rem">Tên</th><th>Mô tả &amp; tiêu chí chấp nhận</th><th style="width:7rem">Mức</th></tr></thead>
+    <tbody>
+      <tr><td><strong>FN-01</strong></td><td>Khởi tạo lưới</td><td>Dựng lưới 3 hàng × 3 cột = đúng 9 ô, kích thước bằng nhau. Mỗi ô có chỉ số 0–8 và là vùng bấm được.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-02</strong></td><td>Bắt đầu lượt</td><td>Bấm “Bắt đầu” → điểm = 0, đồng hồ = 30, chuyển sang màn hình chơi, bắt đầu đếm ngược và lên lịch lần xuất hiện đầu tiên.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-03</strong></td><td>Sinh chuột</td><td>Mỗi thời điểm tối đa 1 chuột trên mặt đất. Ô được chọn ngẫu nhiên trong 8 ô còn lại, <strong>không trùng ô của lần xuất hiện ngay trước</strong>.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-04</strong></td><td>Chuột tự thụt xuống</td><td>Nếu không bị đập, chuột ở trên mặt đất 0,6–1,2 giây (ngẫu nhiên mỗi lần) rồi tự biến mất, sau đó nghỉ 0,2–0,5 giây trước lần xuất hiện kế tiếp.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-05</strong></td><td>Đập chuột</td><td>Bấm/chạm vào ô đang có chuột chưa bị đập → +1 điểm, chuột lập tức biến mất, lên lịch ngay lần xuất hiện kế tiếp (sau khoảng nghỉ).</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-06</strong></td><td>Bấm không hợp lệ</td><td>Bấm ô trống, bấm lại con chuột vừa đập, hoặc bấm sau khi hết giờ → điểm không đổi, không lỗi, không sinh chuột mới.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-07</strong></td><td>Đồng hồ đếm ngược</td><td>Hiển thị số giây còn lại 30 → 0, cập nhật mỗi giây. Khi còn ≤ 5 giây, đổi sang màu cảnh báo (đỏ). Sai lệch tổng thời lượng lượt ≤ 0,5 giây.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-08</strong></td><td>Kết thúc lượt</td><td>Khi đồng hồ về 0: xóa chuột đang hiện, hủy mọi hẹn giờ sinh chuột, khóa mọi cú bấm trên lưới, chuyển sang màn hình kết thúc.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-09</strong></td><td>Lưu kỷ lục</td><td>Cuối lượt, nếu điểm &gt; kỷ lục thì ghi kỷ lục mới vào <code>localStorage</code> và hiện “Kỷ lục mới!”. Kỷ lục còn nguyên sau khi tải lại trang.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-10</strong></td><td>Chơi lại</td><td>Bấm “Chơi lại” → quay về đúng trạng thái như FN-02 (điểm 0, đồng hồ 30), không có hẹn giờ cũ còn sống, không có hai đồng hồ chạy song song.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-11</strong></td><td>Phản hồi khi đập trúng</td><td>Hiện “+1” bay lên ở ô vừa đập, ô nháy sáng, chuột đổi sang <strong>ảnh “bị choáng”</strong> (<code>assets/mouse-stunned.png</code>) trong khoảng 150ms trước khi mất, kèm vài “ngôi sao” nhỏ bay lên.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>FN-12</strong></td><td>Âm thanh</td><td>SFX sinh bằng Web Audio API: tiếng đập trúng, tiếng hết giờ. Nút loa bật/tắt hiện ở màn hình chơi và màn hình bắt đầu; mặc định bật; trạng thái được lưu lại.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>FN-14</strong></td><td>Tài nguyên ảnh</td><td>Tải <code>assets/mouse.png</code> và <code>assets/mouse-stunned.png</code>. Nền trong suốt, cạnh dài ≥ 256px để không vỡ trên màn hình mật độ cao. Nếu một ảnh không tải được, ô vẫn bấm được và vẫn tính điểm (dự phòng: hiện emoji 🐭).</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-13</strong></td><td>Con trỏ búa</td><td>Trên vùng lưới khi đang chơi, con trỏ đổi thành hình búa (CSS <code>cursor</code>). Không áp dụng trên thiết bị cảm ứng.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>2. Luồng một lượt chơi</h2>
+  <pre><code>MÀN BẮT ĐẦU
+   │  người chơi bấm "Bắt đầu"            → FN-02
+   ▼
+KHỞI TẠO LƯỢT
+   score = 0 ; timeLeft = 30 ; lastHole = null
+   hiện màn chơi ; chạy đồng hồ 1 giây/nhịp ; hẹn spawn đầu tiên
+   │
+   ▼
+VÒNG LẶP SINH CHUỘT  (lặp tới khi hết giờ)
+   chọn ô ≠ lastHole                       → FN-03
+   chuột trồi lên ; đặt hẹn "tự thụt" sau 600–1200ms
+   │
+   ├─ người chơi bấm đúng ô, chuột còn sống → FN-05
+   │     +1 điểm ; hủy hẹn "tự thụt" ; hiện "+1" ; phát SFX
+   │     lastHole = ô vừa rồi ; hẹn spawn kế tiếp sau 200–500ms
+   │
+   ├─ người chơi bấm sai / bấm lại           → FN-06
+   │     không làm gì (điểm không đổi)
+   │
+   └─ hết 600–1200ms mà không bị đập         → FN-04
+         chuột thụt xuống
+         lastHole = ô vừa rồi ; hẹn spawn kế tiếp sau 200–500ms
+   │
+   ▼ (timeLeft chạm 0)                        → FN-08
+KẾT THÚC LƯỢT
+   hủy đồng hồ + mọi hẹn giờ ; xóa chuột đang hiện ; khóa bấm
+   nếu score &gt; highScore: lưu kỷ lục, đánh dấu "Kỷ lục mới!"  → FN-09
+   hiện màn kết thúc
+   │  người chơi bấm "Chơi lại"               → FN-10
+   └──────────────► quay lại KHỞI TẠO LƯỢT</code></pre>
+
+  <h2>3. Vòng đời một con chuột</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:9rem">Giai đoạn</th><th style="width:7rem">Thời lượng</th><th>Việc xảy ra</th></tr></thead>
+    <tbody>
+      <tr><td>Chờ</td><td>200–500 ms</td><td>Không có chuột nào trên mặt đất. Bấm vào bất kỳ ô nào đều không tính điểm.</td></tr>
+      <tr><td>Trồi lên</td><td>~120 ms</td><td>Ảnh chuột dịch từ trong hang lên, phần thân dưới bị hang che khuất (mặt nạ <code>overflow: hidden</code>), kèm độ nảy nhẹ (<code>--duration-fast</code>, <code>--ease-bounce</code>). Chuột <strong>đã đập được</strong> ngay từ khung đầu của hoạt ảnh.</td></tr>
+      <tr><td>Trên mặt đất</td><td>600–1200 ms</td><td>Chuột đập được. Nếu bị đập → sang “Bị đập”. Nếu hết thời gian → sang “Thụt xuống”.</td></tr>
+      <tr><td>Bị đập</td><td>~150 ms</td><td>Đổi sang ảnh bị choáng, ô nháy sáng, “+1” bay lên, phát SFX. Trong giai đoạn này chuột <strong>không</strong> đập được nữa (chống bấm liên tiếp ăn nhiều điểm).</td></tr>
+      <tr><td>Thụt xuống</td><td>~120 ms</td><td>Hoạt ảnh dịch xuống, ô trở về trạng thái trống.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">
+    <p class="note__title">Tổng thời gian một chu kỳ</p>
+    <p>Nhanh nhất khoảng 0,8 giây (chuột bị đập ngay + nghỉ 0,2s), chậm nhất khoảng 1,7 giây. Trong 30 giây, người chơi gặp khoảng <strong>18–30 con chuột</strong>. Số này chỉ để tham khảo khi test, không phải một yêu cầu phải thỏa.</p>
+  </div>
+
+  <h2>4. Đồng hồ</h2>
+  <ul>
+    <li>Thời điểm kết thúc được tính <strong>một lần</strong> lúc bắt đầu lượt: <code>endAt = now + 30000</code>. Số giây hiển thị suy ra từ <code>endAt - now</code>, không phải từ biến bị trừ dần mỗi nhịp.</li>
+    <li>Nhờ đó, dù nhịp hẹn giờ của trình duyệt bị trễ (tab ẩn, máy chậm), tổng thời lượng lượt vẫn đúng 30 giây ± 0,5 giây.</li>
+    <li>Khi số giây còn lại ≤ 5, phần hiển thị đồng hồ nhận class cảnh báo → màu <code>--color-danger</code>, có thể kèm nhịp đập nhẹ.</li>
+    <li>Chỉ tồn tại <strong>một</strong> hẹn giờ đồng hồ tại mọi thời điểm. Khi bắt đầu lượt mới, luôn hủy hẹn giờ cũ trước khi tạo mới.</li>
+  </ul>
+
+  <h2>5. Âm thanh</h2>
+  <ul>
+    <li>Hai âm: <strong>đập trúng</strong> (tiếng “pop” ngắn, ~80ms) và <strong>hết giờ</strong> (tiếng hạ tông, ~400ms). Cả hai sinh bằng oscillator của Web Audio API, không dùng file ngoài.</li>
+    <li><code>AudioContext</code> chỉ được khởi tạo (hoặc resume) khi người chơi có tương tác đầu tiên — bấm “Bắt đầu” — vì nhiều trình duyệt chặn phát âm thanh tự động.</li>
+    <li>Nút loa thay đổi giữa hai trạng thái 🔊 / 🔇, có <code>aria-pressed</code>, nhãn rõ ràng cho trình đọc màn hình.</li>
+    <li>Nếu Web Audio không dùng được, game vẫn chạy bình thường và nút loa ở trạng thái tắt, không báo lỗi ra Console.</li>
+  </ul>
+
+  <h2>6. Đầu vào của người chơi</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:12rem">Hành động</th><th>Kỳ vọng</th></tr></thead>
+    <tbody>
+      <tr><td>Click chuột trên ô</td><td>Tính như một lần đập (FN-05 / FN-06).</td></tr>
+      <tr><td>Chạm trên điện thoại</td><td>Tính đúng một lần đập, <strong>không</strong> bị tính hai lần do vừa sinh sự kiện chạm vừa sinh click giả.</td></tr>
+      <tr><td>Bấm giữ rồi kéo ra ngoài ô</td><td>Không tính điểm (chỉ tính khi sự kiện kết thúc trong cùng ô).</td></tr>
+      <tr><td>Bấm liên tiếp cực nhanh cùng một ô</td><td>Chỉ con chuột còn sống đầu tiên được tính; các lần sau 0 điểm.</td></tr>
+      <tr><td>Bàn phím</td><td>Nút “Bắt đầu”, “Chơi lại”, nút loa phải bấm được bằng <kbd>Tab</kbd> + <kbd>Enter</kbd>/<kbd>Space</kbd>. Đập chuột bằng bàn phím không thuộc phạm vi phiên bản này.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="pager">
+    <a href="01-tong-quan.html">← 01 · Tổng quan</a>
+    <a href="03-man-hinh.html">03 · Màn hình →</a>
+  </div>
+</main>
+
+<footer><div class="inner">
+  <span>Đập Chuột — tài liệu đặc tả v1.0</span>
+  <span><a href="../YEU-CAU.md">YEU-CAU.md</a></span>
+</div></footer>
+</body>
+</html>

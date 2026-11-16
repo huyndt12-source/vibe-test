@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>05 · Kế hoạch test — Đập Chuột</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="topbar__brand" href="index.html">Đập Chuột · Docs</a>
+  <nav class="topbar__nav">
+    <a href="index.html">Mục lục</a>
+    <a href="01-tong-quan.html">01 Tổng quan</a>
+    <a href="02-chuc-nang.html">02 Chức năng</a>
+    <a href="03-man-hinh.html">03 Màn hình</a>
+    <a href="04-quy-tac-du-lieu.html">04 Quy tắc &amp; dữ liệu</a>
+    <a href="05-ke-hoach-test.html" aria-current="page">05 Kế hoạch test</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__kicker">Tài liệu 05</p>
+    <h1>Kế hoạch test</h1>
+    <p>Test thủ công theo checklist, bám 1-1 vào mục “Tiêu chí hoàn thành” của YEU-CAU.md.</p>
+  </div>
+</section>
+
+<main>
+  <h2>1. Cách dùng</h2>
+  <ul>
+    <li>Mỗi ca test có mã <code>TC-xx</code> và cột “Chức năng” trỏ về mã <code>FN-xx</code> ở <a href="02-chuc-nang.html">02 · Chức năng</a>.</li>
+    <li>Chạy toàn bộ bộ test trên <strong>một trình duyệt chính</strong> (Chrome desktop), sau đó chạy lại bộ test rút gọn (nhóm A, B, D) trên Safari, Firefox, Edge và một điện thoại thật.</li>
+    <li><strong>Luôn mở Console</strong> trong suốt mỗi lần chạy. Bất kỳ lỗi hoặc cảnh báo nào do game sinh ra đều tính là fail.</li>
+    <li>Game được coi là xong khi <strong>tất cả</strong> ca test <span class="badge badge--must">Bắt buộc</span> đều pass.</li>
+  </ul>
+  <h3>Chuẩn bị môi trường</h3>
+  <ol>
+    <li>Mở file game trực tiếp bằng <code>file://</code> (bấm đúp vào file HTML) — đây là cách phân phối chính.</li>
+    <li>Xóa dữ liệu lưu trữ trước nhóm test về kỷ lục: trong Console chạy <code>localStorage.clear()</code> rồi tải lại trang.</li>
+    <li>Chuẩn bị đồng hồ bấm giây (hoặc điện thoại) để đo thời lượng lượt.</li>
+  </ol>
+
+  <h2>2. Nhóm A — Luật chơi</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:4.5rem">Mã</th><th style="width:5rem">FN</th><th>Các bước</th><th>Kết quả mong đợi</th><th style="width:6rem">Mức</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TC-01</strong></td><td>FN-01</td><td>Mở game, bấm “Bắt đầu”, quan sát bàn chơi.</td><td>Đúng 9 ô, xếp 3 hàng × 3 cột, các ô vuông và bằng nhau.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-02</strong></td><td>FN-03</td><td>Chơi một lượt đầy đủ, không bấm vào đâu, quan sát liên tục.</td><td>Không lúc nào có hơn 1 con chuột trên mặt đất.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-03</strong></td><td>FN-03</td><td>Chơi một lượt, ghi lại thứ tự ô chuột xuất hiện (≥ 15 lần).</td><td>Vị trí có vẻ ngẫu nhiên; <strong>không lần nào</strong> ô trùng với ô của lần ngay trước đó.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-04</strong></td><td>FN-04</td><td>Chơi một lượt, cố tình không bấm vào ô nào.</td><td>Mỗi con chuột tự thụt xuống sau khoảng 0,6–1,2 giây; chuỗi xuất hiện tiếp tục đến hết lượt; điểm cuối lượt = 0.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-05</strong></td><td>FN-07, FN-08</td><td>Bấm “Bắt đầu” và bấm đồng hồ bấm giây cùng lúc; dừng khi màn hình kết thúc hiện ra.</td><td>Thời gian đo được trong khoảng 29,5 – 30,5 giây.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-06</strong></td><td>FN-05</td><td>Trong lúc chơi, đập trúng một con chuột.</td><td>Chuột biến mất ngay lập tức; sau một khoảng nghỉ ngắn, con tiếp theo xuất hiện ở ô khác.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-07</strong></td><td>FN-08</td><td>Chơi tới giây cuối, cố giữ cho có chuột đang hiện ở thời điểm hết giờ.</td><td>Chuột biến mất ngay; màn hình kết thúc hiện ra; không còn chuột nào xuất hiện thêm.</td><td><span class="badge badge--must">BB</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>3. Nhóm B — Tính điểm</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:4.5rem">Mã</th><th style="width:5rem">FN</th><th>Các bước</th><th>Kết quả mong đợi</th><th style="width:6rem">Mức</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TC-10</strong></td><td>FN-05</td><td>Đập trúng 1 con chuột, nhìn thanh điểm.</td><td>Điểm tăng đúng 1 và cập nhật ngay, không có độ trễ cảm nhận được.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-11</strong></td><td>FN-06</td><td>Bấm liên tục vào một ô đang trống khoảng 10 lần.</td><td>Điểm không đổi; không bị trừ; không có chuột nào bị buộc xuất hiện.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-12</strong></td><td>FN-06</td><td>Khi chuột xuất hiện, bấm thật nhanh 5–6 lần vào đúng ô đó.</td><td>Điểm chỉ tăng <strong>1</strong>.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-13</strong></td><td>FN-06</td><td>Sau khi màn hình kết thúc hiện ra, bấm nhiều lần vào vùng lưới (nếu còn thấy).</td><td>Điểm trên màn hình kết thúc không đổi.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-14</strong></td><td>FN-09</td><td><code>localStorage.clear()</code>, tải lại, chơi một lượt được N điểm (N &gt; 0), rồi tải lại trang (<kbd>F5</kbd>).</td><td>Màn hình bắt đầu hiện “Kỷ lục: N”.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-15</strong></td><td>FN-09</td><td>Đang có kỷ lục N; chơi một lượt được ít điểm hơn N.</td><td>Màn hình kết thúc hiện điểm lượt này và “Kỷ lục: N” (giữ nguyên); <strong>không</strong> hiện “Kỷ lục mới!”.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-16</strong></td><td>FN-09</td><td>Chơi một lượt vượt kỷ lục cũ.</td><td>Hiện “Kỷ lục mới!”; kỷ lục cập nhật thành điểm mới và vẫn còn sau khi tải lại trang.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-17</strong></td><td>FN-09</td><td>Chơi một lượt đạt <strong>đúng bằng</strong> kỷ lục hiện tại.</td><td>Không hiện “Kỷ lục mới!”; kỷ lục không đổi.</td><td><span class="badge badge--should">Nên</span></td></tr>
+      <tr><td><strong>TC-18</strong></td><td>FN-09</td><td>Mở game trong cửa sổ riêng tư (hoặc chặn lưu trữ cho trang này), chơi một lượt.</td><td>Game chạy bình thường, không lỗi Console; chỉ không giữ được kỷ lục sau khi tải lại.</td><td><span class="badge badge--must">BB</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>4. Nhóm C — Màn hình</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:4.5rem">Mã</th><th style="width:5rem">FN</th><th>Các bước</th><th>Kết quả mong đợi</th><th style="width:6rem">Mức</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TC-20</strong></td><td>FN-02, FN-08</td><td>Đi qua cả vòng: bắt đầu → chơi → kết thúc → chơi lại.</td><td>Có đủ 3 màn hình riêng biệt; mỗi thời điểm chỉ thấy một màn hình.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-21</strong></td><td>FN-07</td><td>Chơi một lượt, theo dõi đồng hồ từ 30 về 0.</td><td>Giảm đều từng giây, không nhảy cóc, không âm, dừng ở 0.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-22</strong></td><td>FN-07</td><td>Theo dõi lúc đồng hồ chạm 5.</td><td>Từ 5 trở xuống, đồng hồ đổi sang màu cảnh báo (đỏ); trước đó là màu thường.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-23</strong></td><td>FN-08, FN-09</td><td>Xem màn hình kết thúc.</td><td>Hiện “Hết giờ!”, điểm lượt vừa chơi, kỷ lục, và “Kỷ lục mới!” đúng lúc cần.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-24</strong></td><td>FN-10</td><td>Bấm “Chơi lại”.</td><td>Vào lượt mới ngay (không qua màn hình bắt đầu); điểm = 0; đồng hồ = 30.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-25</strong></td><td>FN-11</td><td>Đập trúng một con chuột, quan sát ô vừa đập.</td><td>Có phản hồi rõ: “+1” hiện lên, ô nháy sáng, chuột đổi sang ảnh bị choáng <strong>mà không nhảy vị trí</strong>.</td><td><span class="badge badge--should">Nên</span></td></tr>
+      <tr><td><strong>TC-26</strong></td><td>FN-12</td><td>Bấm nút loa để tắt, chơi và đập trúng vài con; bấm bật lại.</td><td>Khi tắt: hoàn toàn im lặng. Khi bật: có tiếng đập trúng. Trạng thái nút giữ đúng sau khi tải lại trang.</td><td><span class="badge badge--should">Nên</span></td></tr>
+      <tr><td><strong>TC-29a</strong></td><td>FN-14</td><td>Chơi một lượt, quan sát chuột lúc trồi lên và thụt xuống.</td><td>Ảnh chuột 3D hiện rõ nét, thân dưới bị miệng hang che; không thấy ảnh trượt nổi trên mặt bàn.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-29b</strong></td><td>FN-14</td><td>Đổi tên tạm thư mục <code>assets/</code> rồi mở game và chơi một lượt.</td><td>Game vẫn chơi được, vẫn tính điểm, hiện emoji dự phòng; không lỗi Console.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-29c</strong></td><td>FN-14</td><td>Xem lưới trên màn hình Retina hoặc phóng to trình duyệt 200%.</td><td>Ảnh chuột không bị vỡ hạt rõ rệt.</td><td><span class="badge badge--should">Nên</span></td></tr>
+      <tr><td><strong>TC-27</strong></td><td>FN-13</td><td>Di chuột trên vùng lưới khi đang chơi (desktop).</td><td>Con trỏ đổi thành hình búa.</td><td><span class="badge badge--should">Nên</span></td></tr>
+      <tr><td><strong>TC-28</strong></td><td>—</td><td>Bật <em>prefers-reduced-motion</em> trong hệ điều hành, chơi một lượt.</td><td>Hoạt ảnh giảm hoặc biến mất; luật chơi, điểm, đồng hồ không thay đổi.</td><td><span class="badge badge--should">Nên</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>5. Nhóm D — Giao diện &amp; thiết bị</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:4.5rem">Mã</th><th>Các bước</th><th>Kết quả mong đợi</th><th style="width:6rem">Mức</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TC-30</strong></td><td>Thu cửa sổ về rộng 360px (hoặc dùng chế độ mô phỏng thiết bị), chơi một lượt.</td><td>Lưới không tràn, không cuộn ngang; toàn bộ 9 ô và thanh trên cùng thấy được cùng lúc.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-31</strong></td><td>Trên điện thoại thật, đo ô lưới (hoặc kiểm tra trong dev tools).</td><td>Mỗi ô ≥ 80×80px; chạm bằng ngón tay trúng ô mong muốn, không bấm nhầm ô bên cạnh.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-32</strong></td><td>Chơi trọn một lượt trên điện thoại bằng cách chạm.</td><td>Mỗi lần chạm trúng tính đúng 1 điểm, không tính hai lần.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-33</strong></td><td>Chép cả <code>index.html</code> và thư mục <code>assets/</code> sang thư mục khác, mở bằng cách bấm đúp (giao thức <code>file://</code>), không chạy server.</td><td>Game chạy đầy đủ, ảnh chuột hiện đúng, không lỗi Console.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-34</strong></td><td>Ngắt mạng rồi mở lại game (font Google không tải được).</td><td>Game vẫn chạy và đọc được bằng font dự phòng; bố cục không vỡ.</td><td><span class="badge badge--should">Nên</span></td></tr>
+      <tr><td><strong>TC-35</strong></td><td>Chạy nhóm A + B + TC-24 trên Chrome, Safari, Firefox, Edge.</td><td>Pass trên cả bốn trình duyệt bản mới.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-36</strong></td><td>Dùng <kbd>Tab</kbd> và <kbd>Enter</kbd> để đi qua “Bắt đầu”, nút loa, “Chơi lại”.</td><td>Mọi nút đến được bằng bàn phím, có viền focus rõ, bấm được bằng <kbd>Enter</kbd>/<kbd>Space</kbd>.</td><td><span class="badge badge--should">Nên</span></td></tr>
+      <tr><td><strong>TC-37</strong></td><td>Xoay điện thoại từ dọc sang ngang giữa lượt chơi.</td><td>Lượt tiếp tục; điểm và đồng hồ giữ nguyên; lưới co giãn lại gọn gàng.</td><td><span class="badge badge--should">Nên</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>6. Nhóm E — Ổn định &amp; kỹ thuật</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:4.5rem">Mã</th><th>Các bước</th><th>Kết quả mong đợi</th><th style="width:6rem">Mức</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TC-40</strong></td><td>Chơi <strong>5 lượt liên tiếp</strong> bằng “Chơi lại”, để ý nhịp xuất hiện chuột và đồng hồ ở lượt cuối.</td><td>Nhịp chuột không nhanh dần; đồng hồ không chạy nhanh hơn thực tế; mỗi lượt vẫn đúng ~30 giây.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-41</strong></td><td>Chơi hết một lượt rồi chơi lại, đọc toàn bộ Console.</td><td>Không có lỗi hay cảnh báo nào do game sinh ra.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-42</strong></td><td>Bấm “Chơi lại” liên tiếp 5 lần thật nhanh.</td><td>Chỉ một lượt chạy; đồng hồ chỉ có một; không có hai số giây nhảy xen kẽ.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-43</strong></td><td>Giữa lượt, chuyển sang tab khác khoảng 10 giây rồi quay lại.</td><td>Đồng hồ hiển thị giá trị đúng theo thời gian thực (hoặc lượt đã kết thúc); tổng thời lượng không vượt 30 giây thực.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-44</strong></td><td>Tải lại trang (<kbd>F5</kbd>) giữa lượt đang chơi.</td><td>Về màn hình bắt đầu; điểm lượt bị bỏ giữa không được tính vào kỷ lục.</td><td><span class="badge badge--should">Nên</span></td></tr>
+      <tr><td><strong>TC-45</strong></td><td>Chơi liên tục khoảng 10 lượt, theo dõi tab Performance / Memory.</td><td>Bộ nhớ không tăng tuyến tính theo số lượt (không rò hẹn giờ hay phần tử DOM).</td><td><span class="badge badge--should">Nên</span></td></tr>
+      <tr><td><strong>TC-46</strong></td><td>Trong Console, đặt <code>localStorage['dapchuot.highScore'] = 'abc'</code> rồi tải lại trang.</td><td>Game chạy bình thường, coi kỷ lục là 0 (ẩn dòng kỷ lục), không lỗi Console.</td><td><span class="badge badge--should">Nên</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>7. Checklist bàn giao</h2>
+  <p>In ra hoặc sao chép để tick khi bàn giao. Khớp 1-1 với mục 4 của <code>YEU-CAU.md</code>.</p>
+  <div class="grid grid--2">
+    <div class="card">
+      <h4>Luật chơi</h4>
+      <ul class="checklist">
+        <li>Lưới đúng 9 ô, 3 hàng × 3 cột <em>(TC-01)</em></li>
+        <li>Không bao giờ hơn 1 chuột cùng lúc <em>(TC-02)</em></li>
+        <li>Ô ngẫu nhiên, không lặp ô liền trước <em>(TC-03)</em></li>
+        <li>Chuột tự biến mất nếu không bị đập <em>(TC-04)</em></li>
+        <li>Lượt kết thúc sau 30 giây ± 0,5s <em>(TC-05)</em></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Tính điểm</h4>
+      <ul class="checklist">
+        <li>Đập trúng +1, cập nhật ngay <em>(TC-10)</em></li>
+        <li>Bấm ô trống: điểm không đổi <em>(TC-11)</em></li>
+        <li>Bấm nhiều lần một con chỉ 1 điểm <em>(TC-12)</em></li>
+        <li>Bấm sau khi hết giờ không đổi điểm <em>(TC-13)</em></li>
+        <li>Kỷ lục còn sau khi tải lại trang <em>(TC-14, TC-16)</em></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Màn hình</h4>
+      <ul class="checklist">
+        <li>Đủ 3 màn hình <em>(TC-20)</em></li>
+        <li>Đồng hồ đúng, đổi màu khi ≤ 5 giây <em>(TC-21, TC-22)</em></li>
+        <li>Màn kết thúc đủ điểm, kỷ lục, “Kỷ lục mới!” <em>(TC-23)</em></li>
+        <li>“Chơi lại” reset điểm 0 và đồng hồ 30 <em>(TC-24)</em></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Kỹ thuật</h4>
+      <ul class="checklist">
+        <li>Chạy trên Chrome, Safari, Firefox, Edge <em>(TC-35)</em></li>
+        <li>Chơi được bằng chuột và bằng chạm <em>(TC-32)</em></li>
+        <li>Ảnh chuột hiện đúng; thiếu ảnh vẫn chơi được <em>(TC-29a, TC-29b)</em></li>
+        <li>Không lỗi Console khi chơi và chơi lại <em>(TC-41)</em></li>
+        <li>Nhiều lượt liên tiếp không chạy nhanh dần, không hai đồng hồ <em>(TC-40, TC-42)</em></li>
+      </ul>
+    </div>
+  </div>
+  <div class="note note--ok">
+    <p class="note__title">Điều kiện bàn giao</p>
+    <p>Tất cả ca <span class="badge badge--must">BB</span> pass, và Console sạch trong suốt phiên test. Ca <span class="badge badge--should">Nên</span> fail thì ghi lại thành việc cần làm tiếp, không chặn bàn giao.</p>
+  </div>
+
+  <div class="pager">
+    <a href="04-quy-tac-du-lieu.html">← 04 · Quy tắc &amp; dữ liệu</a>
+    <a href="index.html">Mục lục →</a>
+  </div>
+</main>
+
+<footer><div class="inner">
+  <span>Đập Chuột — tài liệu đặc tả v1.0</span>
+  <span><a href="../YEU-CAU.md">YEU-CAU.md</a></span>
+</div></footer>
+</body>
+</html>

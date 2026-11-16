@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Đập Chuột</title>
+<link rel="stylesheet" href="../design/tokens.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main id="app">
+
+  <!-- ===== START ===== -->
+  <section class="screen screen--panel" id="screen-start">
+    <div class="panel">
+      <div class="panel__top">
+        <p class="best" id="start-best" hidden>Kỷ lục: <strong id="start-best-value">0</strong></p>
+        <button class="sound" type="button" data-sound-toggle aria-pressed="true" aria-label="Tắt âm thanh">
+          <span aria-hidden="true" data-sound-icon>🔊</span>
+        </button>
+      </div>
+
+      <h1 class="display title">Đập Chuột</h1>
+      <p class="lead">Đập trúng chuột được 1 điểm.<br>Bạn có 30 giây!</p>
+
+      <button class="btn btn--lg" id="btn-start" type="button">Bắt đầu</button>
+    </div>
+  </section>
+
+  <!-- ===== PLAYING ===== -->
+  <section class="screen screen--play" id="screen-play" hidden>
+    <div class="hud">
+      <p class="hud__item" aria-live="polite">
+        <span class="hud__label">Điểm</span>
+        <span class="hud__value num" id="hud-score">0</span>
+      </p>
+
+      <button class="sound sound--hud" type="button" data-sound-toggle aria-pressed="true" aria-label="Tắt âm thanh">
+        <span aria-hidden="true" data-sound-icon>🔊</span>
+      </button>
+
+      <p class="hud__item hud__item--right">
+        <span class="hud__label">Thời gian</span>
+        <span class="hud__value num" id="hud-time" aria-live="off">30</span>
+      </p>
+    </div>
+
+    <div class="board" id="board" role="group" aria-label="Lưới 9 hang">
+      <!-- 9 ô do game.js dựng -->
+    </div>
+  </section>
+
+  <!-- ===== OVER ===== -->
+  <section class="screen screen--panel" id="screen-over" hidden>
+    <div class="panel">
+      <h2 class="display title title--over">Hết giờ!</h2>
+
+      <p class="final">
+        <span class="final__value num display" id="over-score">0</span>
+        <span class="final__label">điểm lượt này</span>
+      </p>
+
+      <p class="record" id="record" hidden>🎉 Kỷ lục mới!</p>
+
+      <p class="best best--over">Kỷ lục: <strong id="over-best">0</strong></p>
+
+      <button class="btn btn--lg" id="btn-replay" type="button">Chơi lại</button>
+    </div>
+  </section>
+
+</main>
+
+<script src="game.js"></script>
+</body>
+</html>
