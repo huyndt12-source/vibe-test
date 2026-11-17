@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Đập Chuột</title>
+<meta name="description" content="Mini game Đập Chuột: 30 giây, lưới 3×3, đập trúng chuột được 1 điểm.">
+<meta name="theme-color" content="#e8196b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%90%AD%3C/text%3E%3C/svg%3E">
+<style>
+/* ==========================================================================
+   Token lấy từ design/tokens.css — nhúng vào đây để game mở trực tiếp bằng
+   file:// mà chỉ cần đi kèm thư mục assets/.
+   ========================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Anton&family=Kanit:wght@500;600;700&family=Rubik:wght@400;500;700&display=swap");
+
+:root {
+  --color-magenta-500: #e8196b;
+  --color-magenta-700: #a80f4c;
+  --color-purple-500: #a93cf5;
+  --color-yellow-300: #ffe766;
+  --color-yellow-500: #ffd200;
+  --color-green-500: #2fc46b;
+  --color-sky-500: #4fa8ff;
+
+  --color-ink-900: #1c1b1f;
+  --color-ink-800: #26252a;
+  --color-ink-600: #4a4850;
+  --color-ink-200: #d9d6cf;
+  --color-cream-100: #fdfbf3;
+  --color-cream-200: #f4f1e6;
+  --color-white: #ffffff;
+
+  --color-text: var(--color-ink-900);
+  --color-text-muted: var(--color-ink-600);
+  --color-text-inverse: var(--color-cream-100);
+  --color-surface: var(--color-white);
+  --color-primary: var(--color-magenta-500);
+  --color-primary-deep: var(--color-magenta-700);
+  --color-accent: var(--color-yellow-500);
+  --color-danger: #e5352b;
+  --color-success: var(--color-green-500);
+  --color-focus: var(--color-sky-500);
+
+  --font-display: "Anton", "Impact", "Arial Narrow Bold", sans-serif;
+  --font-ui: "Kanit", "Rubik", system-ui, sans-serif;
+  --font-body: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: clamp(2rem, 1.4rem + 2.4vw, 3rem);
+  --text-4xl: clamp(2.5rem, 1.6rem + 3.8vw, 4.5rem);
+
+  --leading-display: 1.02;
+  --tracking-display: 0.005em;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-lg: 0 18px 40px rgb(28 27 31 / 0.18);
+  --shadow-3d: 0 5px 0 0;
+  --shadow-3d-pressed: 0 1px 0 0;
+
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 120ms;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background:
+    radial-gradient(circle at 20% 10%, var(--color-purple-500), transparent 55%),
+    radial-gradient(circle at 85% 85%, var(--color-yellow-500), transparent 50%),
+    var(--color-magenta-500);
+  display: grid;
+  place-items: center;
+  padding: max(var(--space-4), env(safe-area-inset-top)) var(--space-4)
+           max(var(--space-4), env(safe-area-inset-bottom));
+  overflow-x: hidden;
+}
+
+#app { width: 100%; max-width: 30rem; }
+
+.screen {
+  position: relative;
+  background: var(--color-cream-100);
+  border: 3px solid var(--color-ink-900);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5);
+  text-align: center;
+}
+[hidden] { display: none !important; }
+
+h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+  margin: var(--space-2) 0 var(--space-3);
+  color: var(--color-primary);
+  -webkit-text-stroke: 2px var(--color-ink-900);
+  paint-order: stroke fill;
+}
+.lead { margin: 0 0 var(--space-5); font-size: var(--text-lg); color: var(--color-text-muted); }
+.muted { color: var(--color-text-muted); font-size: var(--text-sm); }
+
+.btn {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-white);
+  background: var(--color-primary);
+  border: 3px solid var(--color-ink-900);
+  border-radius: var(--radius-pill);
+  padding: var(--space-3) var(--space-6);
+  cursor: pointer;
+  box-shadow: var(--shadow-3d) var(--color-primary-deep);
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 0 var(--color-primary-deep); }
+.btn:active { transform: translateY(4px); box-shadow: var(--shadow-3d-pressed) var(--color-primary-deep); }
+
+.btn-sound {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  font-size: var(--text-xl);
+  line-height: 1;
+  background: var(--color-surface);
+  border: 2px solid var(--color-ink-900);
+  border-radius: var(--radius-pill);
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.btn-sound:active { transform: scale(0.94); }
+
+:focus-visible { outline: 4px solid var(--color-focus); outline-offset: 3px; }
+
+.hud-record {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  background: var(--color-accent);
+  color: var(--color-ink-900);
+  border: 2px solid var(--color-ink-900);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-4);
+}
+
+.final-score {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  line-height: 1;
+  color: var(--color-primary);
+  display: block;
+}
+.new-record {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  color: var(--color-success);
+  margin: var(--space-3) 0 0;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-ink-900);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-4);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  font-variant-numeric: tabular-nums;
+}
+.topbar .label { font-size: var(--text-sm); font-weight: 500; color: var(--color-ink-200); margin-right: var(--space-1); }
+#time-left { display: inline-block; transition: color var(--duration-fast) linear; }
+#time-left.warn { color: var(--color-danger); animation: pulse 1s infinite var(--ease-out); }
+@keyframes pulse { 50% { transform: scale(1.18); } }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg transform='rotate(-25 20 20)'%3E%3Crect x='17' y='14' width='6' height='22' rx='3' fill='%23a85a2e' stroke='%231c1b1f' stroke-width='2'/%3E%3Crect x='7' y='4' width='26' height='13' rx='4' fill='%23e8196b' stroke='%231c1b1f' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 20 20, pointer;
+}
+
+.hole {
+  position: relative;
+  aspect-ratio: 1;
+  min-height: 80px;
+  border: 3px solid var(--color-ink-900);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3d) var(--color-ink-900);
+  padding: 0;
+  overflow: hidden;
+  cursor: inherit;
+  background: var(--color-yellow-500);
+}
+.hole:nth-child(2n) { background: var(--color-magenta-500); }
+.hole:active { transform: translateY(3px); box-shadow: var(--shadow-3d-pressed) var(--color-ink-900); }
+.hole[disabled] { cursor: default; }
+
+.hole::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 11%;
+  height: 25%;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink-800);
+  box-shadow: inset 0 4px 6px rgb(0 0 0 / 0.55), 0 2px 0 1px rgb(255 255 255 / 0.25);
+  pointer-events: none;
+}
+
+.burrow {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 1%;
+  bottom: 21%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.mouse {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 124%;
+  transform: translate(-50%, 102%);
+  transition: transform var(--duration-fast) var(--ease-bounce);
+  will-change: transform;
+}
+.hole.up .mouse { transform: translate(-50%, 1%); }
+.mouse-emoji {
+  font-size: clamp(2rem, 11vw, 3.25rem);
+  line-height: 1;
+  text-align: center;
+  width: 100%;
+}
+
+.hole.hit { background: var(--color-white); }
+.plus-one {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--color-success);
+  -webkit-text-stroke: 2px var(--color-ink-900);
+  paint-order: stroke fill;
+  pointer-events: none;
+  animation: floatUp 420ms var(--ease-out) forwards;
+}
+@keyframes floatUp {
+  from { opacity: 1; transform: translate(-50%, -50%); }
+  to   { opacity: 0; transform: translate(-50%, -160%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mouse { transition: none; }
+  .plus-one { animation: none; }
+  #time-left.warn { animation: none; }
+  .btn { transition: none; }
+}
+
+@media (max-width: 400px) {
+  .screen { padding: var(--space-4); }
+  .grid { gap: var(--space-2); }
+}
+@media (max-height: 480px) and (orientation: landscape) {
+  h1 { font-size: var(--text-2xl); }
+  .lead { margin-bottom: var(--space-3); }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <section class="screen" id="screen-start">
+    <button class="btn-sound" id="sound-start" type="button" aria-pressed="true" aria-label="Tắt âm thanh">🔊</button>
+    <h1>Đập Chuột</h1>
+    <p class="lead">Đập trúng chuột được 1 điểm.<br>Bạn có 30 giây!</p>
+    <p id="record-row" hidden><span class="hud-record">Kỷ lục: <span id="record-start">0</span></span></p>
+    <p><button class="btn" id="btn-start" type="button">Bắt đầu</button></p>
+  </section>
+
+  <section class="screen" id="screen-play" hidden>
+    <div class="topbar">
+      <span><span class="label">Điểm</span><span id="score" aria-live="polite">0</span></span>
+      <span>⏱ <span class="label">Còn</span><span id="time-left">30</span>s</span>
+      <button class="btn-sound" id="sound-play" type="button" aria-pressed="true" aria-label="Tắt âm thanh"
+              style="position:static;width:2rem;height:2rem;font-size:var(--text-base)">🔊</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="screen" id="screen-over" hidden>
+    <h1 style="font-size:var(--text-3xl)">Hết giờ!</h1>
+    <p><span class="final-score" id="final-score">0</span><span class="muted">điểm lượt này</span></p>
+    <p class="new-record" id="new-record" hidden>🎉 Kỷ lục mới!</p>
+    <p><span class="hud-record">Kỷ lục: <span id="record-over">0</span></span></p>
+    <p><button class="btn" id="btn-again" type="button">Chơi lại</button></p>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ===== Hằng số (xem docs/04-quy-tac-du-lieu.html) ===== */
+  var GRID_SIZE      = 9;
+  var ROUND_MS       = 30000;
+  var UP_MIN_MS      = 600;
+  var UP_MAX_MS      = 1200;
+  var GAP_MIN_MS     = 200;
+  var GAP_MAX_MS     = 500;
+  var WARN_SECONDS   = 5;
+  var STUN_MS        = 150;
+  var POINTS_PER_HIT = 1;
+  var TICK_MS        = 100;
+
+  var KEY_HIGH  = "dapchuot.highScore";
+  var KEY_SOUND = "dapchuot.soundOn";
+
+  var IMG_NORMAL  = "assets/mouse.png";
+  var IMG_STUNNED = "assets/mouse-stunned.png";
+
+  /* ===== State ===== */
+  var state = {
+    phase: "START",
+    score: 0,
+    highScore: 0,
+    endAt: 0,
+    activeHole: null,
+    isWhacked: false,
+    lastHole: null,
+    timers: { tick: null, down: null, spawn: null },
+    soundOn: true,
+    isNewRecord: false
+  };
+
+  var el = {
+    start:       document.getElementById("screen-start"),
+    play:        document.getElementById("screen-play"),
+    over:        document.getElementById("screen-over"),
+    grid:        document.getElementById("grid"),
+    score:       document.getElementById("score"),
+    timeLeft:    document.getElementById("time-left"),
+    recordRow:   document.getElementById("record-row"),
+    recordStart: document.getElementById("record-start"),
+    recordOver:  document.getElementById("record-over"),
+    finalScore:  document.getElementById("final-score"),
+    newRecord:   document.getElementById("new-record"),
+    btnStart:    document.getElementById("btn-start"),
+    btnAgain:    document.getElementById("btn-again"),
+    soundBtns:   [document.getElementById("sound-start"), document.getElementById("sound-play")]
+  };
+
+  /* ===== Lưu trữ: mọi truy cập đều bọc try/catch ===== */
+  function storeGet(key) {
+    try { return window.localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function storeSet(key, value) {
+    try { window.localStorage.setItem(key, value); } catch (e) { /* bỏ qua */ }
+  }
+  function readHighScore() {
+    var n = parseInt(storeGet(KEY_HIGH), 10);
+    return (isFinite(n) && n > 0) ? n : 0;
+  }
+
+  /* ===== Âm thanh (Web Audio, không cần file ngoài) ===== */
+  var audioCtx = null;
+  function ensureAudio() {
+    try {
+      if (!audioCtx) {
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) { return null; }
+        audioCtx = new Ctx();
+      }
+      if (audioCtx.state === "suspended") { audioCtx.resume(); }
+      return audioCtx;
+    } catch (e) { return null; }
+  }
+  function beep(freqFrom, freqTo, ms, type, gain) {
+    if (!state.soundOn) { return; }
+    var ctx = ensureAudio();
+    if (!ctx) { return; }
+    try {
+      var t = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var amp = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freqFrom, t);
+      osc.frequency.exponentialRampToValueAtTime(freqTo, t + ms / 1000);
+      amp.gain.setValueAtTime(gain, t);
+      amp.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
+      osc.connect(amp);
+      amp.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + ms / 1000 + 0.02);
+    } catch (e) { /* bỏ qua */ }
+  }
+  function sfxHit()    { beep(880, 320, 90, "square", 0.18); }
+  function sfxTimeUp() { beep(440, 110, 420, "sawtooth", 0.16); }
+
+  function renderSound() {
+    el.soundBtns.forEach(function (b) {
+      if (!b) { return; }
+      b.textContent = state.soundOn ? "🔊" : "🔇";
+      b.setAttribute("aria-pressed", String(state.soundOn));
+      b.setAttribute("aria-label", state.soundOn ? "Tắt âm thanh" : "Bật âm thanh");
+    });
+  }
+  function toggleSound() {
+    state.soundOn = !state.soundOn;
+    storeSet(KEY_SOUND, state.soundOn ? "1" : "0");
+    renderSound();
+    if (state.soundOn) { sfxHit(); }
+  }
+
+  /* ===== Lưới ===== */
+  var holes = [];
+  function buildGrid() {
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < GRID_SIZE; i++) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "hole";
+      btn.dataset.index = String(i);
+      btn.disabled = true;
+      btn.setAttribute("aria-label", "Hang " + (i + 1));
+
+      var burrow = document.createElement("span");
+      burrow.className = "burrow";
+
+      var img = document.createElement("img");
+      img.className = "mouse";
+      img.src = IMG_NORMAL;
+      img.alt = "";
+      img.draggable = false;
+      img.addEventListener("error", onImageError);
+
+      burrow.appendChild(img);
+      btn.appendChild(burrow);
+      frag.appendChild(btn);
+      holes.push(btn);
+    }
+    el.grid.appendChild(frag);
+    el.grid.addEventListener("pointerdown", onGridPointerDown);
+    el.grid.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  }
+
+  /* FN-14: thiếu ảnh thì vẫn chơi được, thay bằng emoji */
+  function onImageError() {
+    var span = document.createElement("span");
+    span.className = "mouse mouse-emoji";
+    span.textContent = "🐭";
+    span.dataset.fallback = "1";
+    this.replaceWith(span);
+  }
+
+  function setMouseFace(holeEl, stunned) {
+    var node = holeEl.querySelector(".mouse");
+    if (!node) { return; }
+    if (node.dataset.fallback) {
+      node.textContent = stunned ? "😵" : "🐭";
+    } else {
+      node.src = stunned ? IMG_STUNNED : IMG_NORMAL;
+    }
+  }
+
+  /* ===== Hẹn giờ ===== */
+  function clearTimer(name) {
+    if (state.timers[name] !== null) {
+      clearTimeout(state.timers[name]);
+      clearInterval(state.timers[name]);
+      state.timers[name] = null;
+    }
+  }
+  function clearAllTimers() {
+    clearTimer("tick");
+    clearTimer("down");
+    clearTimer("spawn");
+  }
+  function randInt(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
+
+  /* ===== Sinh chuột ===== */
+  function pickHole() {
+    if (state.lastHole === null) { return randInt(0, GRID_SIZE - 1); }
+    var i = randInt(0, GRID_SIZE - 2);
+    return i >= state.lastHole ? i + 1 : i;
+  }
+
+  function scheduleSpawn() {
+    clearTimer("spawn");
+    state.timers.spawn = setTimeout(spawn, randInt(GAP_MIN_MS, GAP_MAX_MS));
+  }
+
+  function spawn() {
+    if (state.phase !== "PLAYING") { return; }
+    var idx = pickHole();
+    state.activeHole = idx;
+    state.isWhacked = false;
+    setMouseFace(holes[idx], false);
+    holes[idx].classList.add("up");
+    clearTimer("down");
+    state.timers.down = setTimeout(function () { hideMouse(idx); }, randInt(UP_MIN_MS, UP_MAX_MS));
+  }
+
+  function hideMouse(idx) {
+    clearTimer("down");
+    holes[idx].classList.remove("up", "hit");
+    state.lastHole = idx;
+    state.activeHole = null;
+    state.isWhacked = false;
+    if (state.phase === "PLAYING") { scheduleSpawn(); }
+  }
+
+  /* ===== Đập ===== */
+  function onGridPointerDown(ev) {
+    var holeEl = ev.target.closest(".hole");
+    if (!holeEl) { return; }
+    whack(parseInt(holeEl.dataset.index, 10));
+  }
+
+  function whack(idx) {
+    if (state.phase !== "PLAYING") { return; }   // bấm ngoài lượt: 0 điểm
+    if (idx !== state.activeHole) { return; }    // ô trống: 0 điểm
+    if (state.isWhacked) { return; }             // đã đập rồi: 0 điểm
+
+    state.isWhacked = true;
+    state.score += POINTS_PER_HIT;
+    el.score.textContent = String(state.score);
+    clearTimer("down");
+
+    var holeEl = holes[idx];
+    setMouseFace(holeEl, true);
+    holeEl.classList.add("hit");
+    showPlusOne(holeEl);
+    sfxHit();
+
+    state.timers.down = setTimeout(function () { hideMouse(idx); }, STUN_MS);
+  }
+
+  function showPlusOne(holeEl) {
+    var tag = document.createElement("span");
+    tag.className = "plus-one";
+    tag.textContent = "+1";
+    holeEl.appendChild(tag);
+    setTimeout(function () { if (tag.parentNode) { tag.remove(); } }, 460);
+  }
+
+  /* ===== Đồng hồ ===== */
+  function renderTime(seconds) {
+    el.timeLeft.textContent = String(seconds);
+    el.timeLeft.classList.toggle("warn", seconds <= WARN_SECONDS);
+  }
+
+  function tick() {
+    var remain = Math.max(0, state.endAt - Date.now());
+    var seconds = Math.ceil(remain / 1000);
+    if (el.timeLeft.textContent !== String(seconds)) { renderTime(seconds); }
+    if (remain <= 0) { endRound(); }
+  }
+
+  /* ===== Chuyển màn hình ===== */
+  function showScreen(name) {
+    el.start.hidden = name !== "START";
+    el.play.hidden  = name !== "PLAYING";
+    el.over.hidden  = name !== "OVER";
+  }
+
+  /* ===== Vòng đời lượt chơi ===== */
+  function startRound() {
+    clearAllTimers();   // không bao giờ để hẹn giờ cũ sống sót
+    holes.forEach(function (h) {
+      h.classList.remove("up", "hit");
+      h.disabled = false;
+    });
+
+    state.phase = "PLAYING";
+    state.score = 0;
+    state.isWhacked = false;
+    state.activeHole = null;
+    state.lastHole = null;
+    state.isNewRecord = false;
+    state.endAt = Date.now() + ROUND_MS;
+
+    el.score.textContent = "0";
+    renderTime(Math.ceil(ROUND_MS / 1000));
+    showScreen("PLAYING");
+
+    state.timers.tick = setInterval(tick, TICK_MS);
+    scheduleSpawn();
+  }
+
+  function endRound() {
+    if (state.phase !== "PLAYING") { return; }
+    state.phase = "OVER";
+    clearAllTimers();
+
+    holes.forEach(function (h) {
+      h.classList.remove("up", "hit");
+      h.disabled = true;
+    });
+    state.activeHole = null;
+    state.isWhacked = false;
+    renderTime(0);
+
+    state.isNewRecord = state.score > state.highScore;
+    if (state.isNewRecord) {
+      state.highScore = state.score;
+      storeSet(KEY_HIGH, String(state.highScore));
+    }
+
+    el.finalScore.textContent = String(state.score);
+    el.recordOver.textContent = String(state.highScore);
+    el.newRecord.hidden = !state.isNewRecord;
+
+    sfxTimeUp();
+    showScreen("OVER");
+    el.btnAgain.focus();
+  }
+
+  /* ===== Khởi động ===== */
+  function init() {
+    buildGrid();
+
+    /* tải sẵn ảnh bị choáng để lần đập đầu không bị nháy */
+    var pre = new Image();
+    pre.src = IMG_STUNNED;
+
+    state.highScore = readHighScore();
+    state.soundOn = storeGet(KEY_SOUND) !== "0";
+    renderSound();
+
+    if (state.highScore > 0) {
+      el.recordStart.textContent = String(state.highScore);
+      el.recordRow.hidden = false;
+    }
+
+    el.btnStart.addEventListener("click", function () { ensureAudio(); startRound(); });
+    el.btnAgain.addEventListener("click", startRound);
+    el.soundBtns.forEach(function (b) { if (b) { b.addEventListener("click", toggleSound); } });
+
+    showScreen("START");
+    el.btnStart.focus();
+  }
+
+  init();
+
+  /* chỉ để test tự động, không dùng trong lúc chơi */
+  window.__game = { state: state, holes: holes, whack: whack };
+})();
+</script>
+</body>
+</html>

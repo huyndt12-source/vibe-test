@@ -1,0 +1,13 @@
+.git
+.gitignore
+.claude
+docs
+index.html
+YEU-CAU.md
+*.md
+node_modules
+npm-debug.log*
+.DS_Store
+.env
+Dockerfile
+docker-compose.yml

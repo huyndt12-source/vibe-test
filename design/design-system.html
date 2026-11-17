@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playful Design System</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  html, body { overflow-x: clip; }
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: var(--leading-body);
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--space-4); }
+  @media (min-width: 720px) { .wrap { padding: 0 var(--space-6); } }
+
+  /* ---------- Kiểu chữ dùng chung ---------- */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    line-height: var(--leading-display);
+    letter-spacing: var(--tracking-display);
+    margin: 0;
+  }
+  .eyebrow {
+    font-family: var(--font-ui);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--text-sm);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: var(--space-3);
+  }
+  h2.section-title { font-size: var(--text-4xl); margin-bottom: var(--space-2); }
+  .lead { font-size: var(--text-lg); color: var(--color-text-muted); max-width: 60ch; margin: 0 0 var(--space-7); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    padding: var(--space-9) 0 var(--space-10);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero h1 { font-size: var(--text-5xl); }
+  .hero h1 .small { display: block; font-size: 0.42em; margin-bottom: 0.1em; }
+  .hero p { font-size: var(--text-lg); max-width: 52ch; margin: var(--space-5) 0 var(--space-6); opacity: .92; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .blob {
+    position: absolute; border-radius: 50%;
+    background: var(--color-yellow-500);
+    box-shadow: inset -8px -10px 0 rgb(0 0 0 / .12);
+  }
+  .blob.b1 { width: 90px; height: 90px; right: 8%; top: 18%; }
+  .blob.b2 { width: 42px; height: 42px; right: 22%; top: 60%; background: var(--color-orange-500); }
+  .blob.b3 { width: 24px; height: 24px; right: 4%; top: 70%; }
+
+  /* Mép section nghiêng — chữ ký hình khối của phong cách */
+  .tilt-top { position: relative; margin-top: calc(var(--space-8) * -1); padding-top: var(--space-8); }
+  .tilt-top::before {
+    content: ""; position: absolute; inset: 0 -5% auto -5%; height: 140px;
+    background: inherit; transform: skewY(var(--skew-section)); transform-origin: left;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+  .tilt-top > * { position: relative; }
+
+  section.block { padding: var(--space-9) 0; }
+  .bg-cream { background: var(--color-bg); }
+  .bg-dark  { background: var(--color-ink-800); color: var(--color-text-inverse); }
+  .bg-dark .lead { color: var(--color-ink-200); }
+  .bg-purple { background: var(--color-secondary); color: var(--color-text-inverse); }
+  .bg-purple .lead { color: rgb(255 255 255 / .85); }
+  .bg-yellow { background: var(--color-accent); }
+
+  /* ---------- Bảng màu ---------- */
+  .swatch-group { margin-bottom: var(--space-6); }
+  .swatch-group h3 { font-family: var(--font-ui); font-size: var(--text-lg); margin: 0 0 var(--space-3); }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-3); }
+  .swatch {
+    border-radius: var(--radius-md); overflow: hidden;
+    background: var(--color-surface); border: 1px solid var(--color-border);
+  }
+  .swatch .chip { height: 88px; }
+  .swatch .meta { padding: var(--space-2) var(--space-3) var(--space-3); font-size: var(--text-sm); }
+  .swatch .meta b { display: block; font-family: var(--font-ui); font-weight: 600; }
+  .swatch code { color: var(--color-text-muted); font-size: var(--text-xs); }
+
+  /* ---------- Kiểu chữ ---------- */
+  .type-row {
+    display: grid; grid-template-columns: 1fr; gap: var(--space-2);
+    padding: var(--space-5) 0; border-bottom: 1px solid rgb(255 255 255 / .12);
+  }
+  @media (min-width: 720px) { .type-row { grid-template-columns: 180px 1fr; align-items: baseline; } }
+  .type-row .label { font-family: var(--font-ui); font-size: var(--text-sm); color: var(--color-ink-400); }
+  .type-row .label small { display: block; font-family: var(--font-body); }
+  .sample { margin: 0; overflow-wrap: anywhere; }
+
+  .families { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6); }
+  .family {
+    background: var(--color-ink-900); border-radius: var(--radius-lg); padding: var(--space-5);
+  }
+  .family .big { font-size: 64px; line-height: 1; margin-bottom: var(--space-3); }
+  .family .name { font-family: var(--font-ui); font-weight: 600; }
+  .family .use { color: var(--color-ink-400); font-size: var(--text-sm); }
+
+  /* ---------- Nút ---------- */
+  .btn {
+    --btn-bg: var(--color-primary);
+    --btn-deep: var(--color-primary-deep);
+    --btn-fg: var(--color-white);
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    font-family: var(--font-ui); font-weight: var(--font-weight-semibold);
+    font-size: var(--text-lg); letter-spacing: var(--tracking-ui);
+    padding: 0.7em 1.6em; min-height: 48px;
+    border: 0; border-radius: var(--radius-pill);
+    color: var(--btn-fg); background: var(--btn-bg);
+    box-shadow: var(--shadow-3d) var(--btn-deep);
+    cursor: pointer; text-decoration: none;
+    transform: translateY(0);
+    transition: transform var(--duration-base) var(--ease-bounce), box-shadow var(--duration-fast) var(--ease-out), filter var(--duration-fast);
+  }
+  .btn:hover { transform: translateY(-2px) rotate(-1deg); filter: brightness(1.05); }
+  .btn:active { transform: translateY(4px); box-shadow: var(--shadow-3d-pressed) var(--btn-deep); }
+  .btn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 4px; }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; transform: none; filter: grayscale(.4); }
+  .btn .arrow { transition: transform var(--duration-base) var(--ease-bounce); }
+  .btn:hover .arrow { transform: translateX(4px); }
+
+  .btn--secondary { --btn-bg: var(--color-secondary); --btn-deep: var(--color-secondary-deep); }
+  .btn--accent    { --btn-bg: var(--color-accent); --btn-deep: var(--color-accent-deep); --btn-fg: var(--color-ink-900); }
+  .btn--dark      { --btn-bg: var(--color-ink-900); --btn-deep: #000; }
+  .btn--light     { --btn-bg: var(--color-white); --btn-deep: var(--color-ink-200); --btn-fg: var(--color-primary); }
+  .btn--ghost {
+    background: transparent; color: currentColor; box-shadow: inset 0 0 0 2.5px currentColor;
+  }
+  .btn--ghost:active { box-shadow: inset 0 0 0 2.5px currentColor; transform: translateY(2px); }
+  .btn--sm { font-size: var(--text-sm); min-height: 34px; padding: 0.35em 1.1em; --shadow-3d: 0 3px 0 0; }
+  .btn--lg { font-size: var(--text-xl); min-height: 60px; padding: 0.7em 2em; }
+
+  .btn-grid { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; margin-bottom: var(--space-5); }
+  .stack-buttons { display: grid; gap: var(--space-3); max-width: 280px; }
+  .stack-buttons .btn { justify-content: space-between; }
+
+  /* ---------- Ô nhập ---------- */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-5); }
+  .field { display: grid; gap: var(--space-2); }
+  .field label { font-family: var(--font-ui); font-weight: 600; font-size: var(--text-sm); }
+  .field .hint { font-size: var(--text-xs); color: var(--color-text-muted); }
+  .input, .select, .textarea {
+    font: inherit; color: var(--color-text);
+    width: 100%; min-height: 50px;
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink-200);
+    border-radius: var(--radius-md);
+    box-shadow: 0 3px 0 0 var(--color-ink-200);
+    transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  }
+  .textarea { min-height: 120px; resize: vertical; }
+  .input::placeholder, .textarea::placeholder { color: var(--color-ink-400); }
+  .input:hover, .select:hover, .textarea:hover { border-color: var(--color-ink-400); }
+  .input:focus, .select:focus, .textarea:focus {
+    outline: none; border-color: var(--color-primary);
+    box-shadow: 0 3px 0 0 var(--color-primary-deep), 0 0 0 4px rgb(232 25 107 / .18);
+  }
+  .is-error .input { border-color: var(--color-danger); box-shadow: 0 3px 0 0 var(--color-danger); }
+  .is-error .hint { color: var(--color-danger); }
+  .input[disabled] { background: var(--color-surface-alt); color: var(--color-ink-400); cursor: not-allowed; }
+
+  .search { display: flex; gap: var(--space-2); }
+  .search .input { border-radius: var(--radius-pill); }
+
+  .check { display: flex; align-items: center; gap: var(--space-3); cursor: pointer; font-weight: 500; }
+  .check input {
+    appearance: none; width: 26px; height: 26px; margin: 0; flex: none;
+    border: 2px solid var(--color-ink-400); border-radius: var(--radius-sm); background: var(--color-surface);
+    display: grid; place-content: center; transition: background var(--duration-fast), transform var(--duration-base) var(--ease-bounce);
+  }
+  .check input::after { content: "✓"; color: var(--color-ink-900); font-weight: 700; transform: scale(0); transition: transform var(--duration-base) var(--ease-bounce); }
+  .check input:checked { background: var(--color-accent); border-color: var(--color-accent-deep); transform: rotate(-6deg); }
+  .check input:checked::after { transform: scale(1); }
+  .check input:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+  .toggle { display: flex; align-items: center; gap: var(--space-3); cursor: pointer; font-weight: 500; }
+  .toggle input {
+    appearance: none; margin: 0; width: 52px; height: 30px; border-radius: var(--radius-pill);
+    background: var(--color-ink-200); position: relative; flex: none; transition: background var(--duration-base);
+  }
+  .toggle input::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--color-white); box-shadow: 0 2px 0 rgb(0 0 0 / .15);
+    transition: transform var(--duration-base) var(--ease-bounce);
+  }
+  .toggle input:checked { background: var(--color-primary); }
+  .toggle input:checked::after { transform: translateX(22px); }
+  .toggle input:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
+
+  /* ---------- Thẻ ---------- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-5); }
+  .card {
+    background: var(--color-surface); color: var(--color-text);
+    border-radius: var(--radius-lg); overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: transform var(--duration-base) var(--ease-bounce), box-shadow var(--duration-base);
+    display: flex; flex-direction: column;
+  }
+  .card:hover { transform: translateY(-6px) rotate(-.6deg); box-shadow: var(--shadow-lg); }
+  .card .media {
+    aspect-ratio: 16 / 10; display: grid; place-items: center; position: relative; overflow: hidden;
+  }
+  .card .media .display { font-size: var(--text-3xl); color: var(--color-white); text-align: center; text-shadow: 0 4px 0 rgb(0 0 0 / .18); }
+  .card .media::after {
+    content: ""; position: absolute; width: 160%; height: 60%; bottom: -40%; left: -30%;
+    background: rgb(255 255 255 / .14); border-radius: 50%;
+  }
+  .card .body { padding: var(--space-5); display: grid; gap: var(--space-2); flex: 1; align-content: start; }
+  .card h3 { font-family: var(--font-display); font-weight: 400; text-transform: uppercase; font-size: var(--text-2xl); line-height: 1; margin: 0; }
+  .card p { margin: 0; color: var(--color-text-muted); }
+  .card .foot { padding: 0 var(--space-5) var(--space-5); }
+
+  .tag {
+    display: inline-flex; align-items: center; gap: var(--space-1);
+    font-family: var(--font-ui); font-weight: 600; font-size: var(--text-xs);
+    padding: 3px 10px; border-radius: var(--radius-pill);
+    background: var(--color-surface-alt); color: var(--color-ink-600);
+  }
+  .tag--hot { background: var(--color-primary); color: var(--color-white); }
+  .tag--new { background: var(--color-accent); color: var(--color-ink-900); }
+
+  /* Thẻ danh sách (job row) */
+  .list-card {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+    background: var(--color-surface); color: var(--color-text);
+    border: 1px solid var(--color-border); border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5); margin-bottom: var(--space-3);
+    box-shadow: var(--shadow-sm); text-decoration: none;
+    transition: transform var(--duration-base) var(--ease-bounce), border-color var(--duration-fast);
+  }
+  .list-card:hover { transform: translateX(6px); border-color: var(--color-primary); }
+  .list-card h4 { font-family: var(--font-display); font-weight: 400; text-transform: uppercase; font-size: var(--text-xl); margin: 0 0 var(--space-1); line-height: 1.05; }
+  .list-card .meta { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); font-size: var(--text-xs); color: var(--color-text-muted); }
+  .list-card .go { font-size: var(--text-2xl); color: var(--color-primary); flex: none; }
+
+  /* Thẻ thống kê */
+  .stat {
+    border-radius: var(--radius-lg); padding: var(--space-5);
+    background: var(--color-ink-900); color: var(--color-text-inverse);
+  }
+  .stat .num { font-family: var(--font-display); font-size: var(--text-4xl); line-height: 1; color: var(--color-accent); }
+
+  /* ---------- Tokens phụ ---------- */
+  .scale { display: grid; gap: var(--space-2); }
+  .scale-row { display: grid; grid-template-columns: 90px 70px 1fr; align-items: center; gap: var(--space-3); font-size: var(--text-sm); }
+  .scale-row code { color: var(--color-text-muted); }
+  .bar { height: 16px; background: var(--color-primary); border-radius: var(--radius-xs); }
+  .radii { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+  .radius-box {
+    width: 110px; height: 90px; background: var(--color-secondary); color: #fff;
+    display: grid; place-items: center; font-family: var(--font-ui); font-weight: 600; font-size: var(--text-sm); text-align: center;
+  }
+  .two-col { display: grid; gap: var(--space-7); }
+  @media (min-width: 860px) { .two-col { grid-template-columns: 1fr 1fr; } }
+  h3.sub { font-family: var(--font-ui); font-size: var(--text-xl); margin: 0 0 var(--space-4); }
+
+  footer { padding: var(--space-8) 0; }
+  footer .display { font-size: var(--text-3xl); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="wrap">
+    <span class="eyebrow">Design System · v1.0</span>
+    <h1 class="display"><span class="small">Thiết kế phải</span>Vui nhộn</h1>
+    <p>Bộ token và thành phần cho giao diện năng lượng cao: màu bão hoà, chữ condensed in hoa, nút "viên kẹo" có đáy 3D và mép section nghiêng.</p>
+    <div class="actions">
+      <a class="btn btn--accent btn--lg" href="#colors">Xem bảng màu <span class="arrow">→</span></a>
+      <a class="btn btn--ghost btn--lg" href="#buttons">Thành phần</a>
+    </div>
+  </div>
+</header>
+
+<!-- MÀU -->
+<section class="block bg-cream tilt-top" id="colors">
+  <div class="wrap">
+    <span class="eyebrow" style="color:var(--color-primary)">01 — Màu sắc</span>
+    <h2 class="display section-title">Bảng màu</h2>
+    <p class="lead">Ba màu thương hiệu dùng làm nền cả section, không chỉ làm điểm nhấn. Mỗi màu có bản "deep" để tạo đáy 3D cho nút và khối.</p>
+
+    <div class="swatch-group">
+      <h3>Thương hiệu</h3>
+      <div class="swatches" id="sw-brand"></div>
+    </div>
+    <div class="swatch-group">
+      <h3>Điểm nhấn &amp; trạng thái</h3>
+      <div class="swatches" id="sw-accent"></div>
+    </div>
+    <div class="swatch-group">
+      <h3>Trung tính</h3>
+      <div class="swatches" id="sw-neutral"></div>
+    </div>
+  </div>
+</section>
+
+<!-- KIỂU CHỮ -->
+<section class="block bg-dark tilt-top" id="type">
+  <div class="wrap">
+    <span class="eyebrow" style="color:var(--color-accent)">02 — Kiểu chữ</span>
+    <h2 class="display section-title">Kiểu chữ</h2>
+    <p class="lead">Tiêu đề luôn in hoa, condensed, giãn dòng rất chặt (~1.0). Văn bản thân dùng sans tròn trịa, dễ đọc.</p>
+
+    <div class="families">
+      <div class="family">
+        <div class="big display">Aa</div>
+        <div class="name">Anton</div>
+        <div class="use">--font-display · Tiêu đề, số liệu</div>
+      </div>
+      <div class="family">
+        <div class="big" style="font-family:var(--font-ui);font-weight:600">Aa</div>
+        <div class="name">Kanit 500–700</div>
+        <div class="use">--font-ui · Nút, nhãn, menu</div>
+      </div>
+      <div class="family">
+        <div class="big" style="font-family:var(--font-body)">Aa</div>
+        <div class="name">Rubik 400–700</div>
+        <div class="use">--font-body · Đoạn văn</div>
+      </div>
+    </div>
+
+    <div class="type-row"><div class="label">5XL<small>48→120 · display</small></div><p class="sample display" style="font-size:var(--text-5xl)">Chơi lớn</p></div>
+    <div class="type-row"><div class="label">4XL<small>40→72 · display</small></div><p class="sample display" style="font-size:var(--text-4xl)">Khắp thế giới</p></div>
+    <div class="type-row"><div class="label">3XL<small>32→48 · display</small></div><p class="sample display" style="font-size:var(--text-3xl)">Cùng nhau chiến thắng</p></div>
+    <div class="type-row"><div class="label">2XL<small>28 · ui 700</small></div><p class="sample" style="font-family:var(--font-ui);font-weight:700;font-size:var(--text-2xl)">Tiêu đề phụ của khối</p></div>
+    <div class="type-row"><div class="label">XL<small>22 · ui 600</small></div><p class="sample" style="font-family:var(--font-ui);font-weight:600;font-size:var(--text-xl)">Nhãn nút lớn, tên thẻ</p></div>
+    <div class="type-row"><div class="label">LG<small>18 · body</small></div><p class="sample" style="font-size:var(--text-lg)">Đoạn dẫn nhập ngắn đặt ngay dưới tiêu đề lớn để giải thích ý chính.</p></div>
+    <div class="type-row"><div class="label">Base<small>16 · body</small></div><p class="sample">Văn bản thân mặc định. Câu ngắn, giọng thân thiện, dòng không quá 70 ký tự để mắt đọc thoải mái.</p></div>
+    <div class="type-row"><div class="label">SM / XS<small>14 / 12</small></div><p class="sample" style="font-size:var(--text-sm)">Chú thích, metadata · <span style="font-size:var(--text-xs)">Nhãn nhỏ nhất 12px</span></p></div>
+  </div>
+</section>
+
+<!-- NÚT -->
+<section class="block bg-cream tilt-top" id="buttons">
+  <div class="wrap">
+    <span class="eyebrow" style="color:var(--color-primary)">03 — Nút bấm</span>
+    <h2 class="display section-title">Nút bấm</h2>
+    <p class="lead">Viên thuốc bo tròn hoàn toàn, có "đáy" màu đậm hơn 5px. Hover nảy lên và hơi nghiêng; nhấn thì lún xuống như phím game.</p>
+
+    <div class="btn-grid">
+      <button class="btn">Chính</button>
+      <button class="btn btn--secondary">Phụ</button>
+      <button class="btn btn--accent">Nhấn mạnh <span class="arrow">→</span></button>
+      <button class="btn btn--dark">Tối</button>
+      <button class="btn btn--ghost" style="color:var(--color-primary)">Viền</button>
+      <button class="btn" disabled>Vô hiệu</button>
+    </div>
+    <div class="btn-grid">
+      <button class="btn btn--sm">Nhỏ</button>
+      <button class="btn">Vừa</button>
+      <button class="btn btn--lg">Lớn</button>
+    </div>
+  </div>
+</section>
+
+<section class="block bg-primary" style="background:var(--color-primary);color:#fff">
+  <div class="wrap two-col">
+    <div>
+      <h3 class="display" style="font-size:var(--text-4xl)">Nút trên nền màu</h3>
+      <p style="max-width:40ch;opacity:.9">Trên nền hồng hoặc tím, dùng nút vàng cho CTA và nút trắng cho hành động phụ. Nhóm điều hướng xếp dọc, mũi tên đặt ở cạnh.</p>
+      <div class="btn-grid" style="margin-top:var(--space-5)">
+        <button class="btn btn--light">Trắng</button>
+        <button class="btn btn--ghost">Viền trắng</button>
+        <button class="btn btn--sm btn--light">Chơi</button>
+      </div>
+    </div>
+    <div class="stack-buttons" style="justify-self:start">
+      <a class="btn btn--accent btn--lg" href="#">Về chúng tôi <span class="arrow">→</span></a>
+      <a class="btn btn--accent btn--lg" href="#">Cơ hội việc làm <span class="arrow">→</span></a>
+      <a class="btn btn--accent btn--lg" href="#">Sản phẩm <span class="arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- Ô NHẬP -->
+<section class="block bg-cream tilt-top" id="inputs">
+  <div class="wrap">
+    <span class="eyebrow" style="color:var(--color-primary)">04 — Ô nhập</span>
+    <h2 class="display section-title">Ô nhập liệu</h2>
+    <p class="lead">Viền dày 2px cùng đáy 3D mỏng, tiếp nối ngôn ngữ của nút. Khi focus, viền chuyển sang màu chính kèm quầng sáng.</p>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="f-name">Họ và tên</label>
+        <input class="input" id="f-name" placeholder="Nguyễn Văn A">
+        <span class="hint">Trạng thái mặc định</span>
+      </div>
+      <div class="field">
+        <label for="f-email">Email</label>
+        <input class="input" id="f-email" type="email" value="ban@vidu.vn">
+        <span class="hint">Bấm vào để xem trạng thái focus</span>
+      </div>
+      <div class="field is-error">
+        <label for="f-phone">Số điện thoại</label>
+        <input class="input" id="f-phone" value="09xx">
+        <span class="hint">Số điện thoại chưa hợp lệ</span>
+      </div>
+      <div class="field">
+        <label for="f-dis">Mã giới thiệu</label>
+        <input class="input" id="f-dis" value="Đã khoá" disabled>
+        <span class="hint">Vô hiệu</span>
+      </div>
+      <div class="field">
+        <label for="f-role">Vị trí</label>
+        <select class="select" id="f-role">
+          <option>Thiết kế</option><option>Lập trình</option><option>Marketing</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-search">Tìm kiếm</label>
+        <div class="search">
+          <input class="input" id="f-search" placeholder="Tìm vị trí…">
+          <button class="btn btn--sm" style="min-height:50px">Tìm</button>
+        </div>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+        <label for="f-msg">Lời nhắn</label>
+        <textarea class="textarea" id="f-msg" placeholder="Kể cho chúng tôi nghe về bạn…"></textarea>
+      </div>
+      <div class="field" style="gap:var(--space-3)">
+        <label class="check"><input type="checkbox" checked> Nhận bản tin hàng tháng</label>
+        <label class="check"><input type="checkbox"> Tôi đồng ý với điều khoản</label>
+      </div>
+      <div class="field" style="gap:var(--space-3)">
+        <label class="toggle"><input type="checkbox" checked> Âm thanh</label>
+        <label class="toggle"><input type="checkbox"> Thông báo</label>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THẺ -->
+<section class="block bg-purple tilt-top" id="cards">
+  <div class="wrap">
+    <span class="eyebrow" style="color:var(--color-accent)">05 — Thẻ</span>
+    <h2 class="display section-title">Thẻ</h2>
+    <p class="lead">Bo góc 24px, nền trắng nổi trên section màu. Hover nảy lên và nghiêng nhẹ. Khối media dùng màu thương hiệu thay cho ảnh minh hoạ.</p>
+
+    <div class="cards">
+      <article class="card">
+        <div class="media" style="background:var(--color-primary)"><span class="display">Xây<br>vương quốc</span></div>
+        <div class="body">
+          <div><span class="tag tag--hot">Nổi bật</span></div>
+          <h3>Thẻ sản phẩm</h3>
+          <p>Mô tả ngắn hai dòng về sản phẩm hoặc tính năng chính.</p>
+        </div>
+        <div class="foot"><button class="btn btn--sm">Chơi ngay</button></div>
+      </article>
+      <article class="card">
+        <div class="media" style="background:var(--color-accent)"><span class="display" style="color:var(--color-ink-900);text-shadow:none">Săn<br>kho báu</span></div>
+        <div class="body">
+          <div><span class="tag tag--new">Mới</span> <span class="tag">Phiêu lưu</span></div>
+          <h3>Thẻ tính năng</h3>
+          <p>Dùng nền vàng để tạo nhịp xen kẽ giữa các thẻ cùng hàng.</p>
+        </div>
+        <div class="foot"><button class="btn btn--sm btn--secondary">Tìm hiểu</button></div>
+      </article>
+      <article class="card">
+        <div class="media" style="background:var(--color-ink-800)"><span class="display" style="color:var(--color-accent)">Thách<br>đấu bạn bè</span></div>
+        <div class="body">
+          <div><span class="tag">Nhiều người chơi</span></div>
+          <h3>Thẻ tối</h3>
+          <p>Biến thể media tối với chữ vàng cho nội dung đặc biệt.</p>
+        </div>
+        <div class="foot"><button class="btn btn--sm btn--dark">Xem thêm</button></div>
+      </article>
+    </div>
+
+    <div class="two-col" style="margin-top:var(--space-7)">
+      <div>
+        <h3 class="sub">Thẻ danh sách</h3>
+        <a class="list-card" href="#">
+          <div><h4>Nhà thiết kế sản phẩm</h4><div class="meta"><span>Hà Nội</span><span>Toàn thời gian</span><span>Senior</span></div></div>
+          <span class="go">›</span>
+        </a>
+        <a class="list-card" href="#">
+          <div><h4>Kỹ sư front-end</h4><div class="meta"><span>TP.HCM</span><span>Từ xa</span><span>Mid-level</span></div></div>
+          <span class="go">›</span>
+        </a>
+      </div>
+      <div>
+        <h3 class="sub">Thẻ số liệu</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+          <div class="stat"><div class="num">4</div><div>văn phòng</div></div>
+          <div class="stat"><div class="num">200+</div><div>thành viên</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KHOẢNG CÁCH & BO GÓC -->
+<section class="block bg-cream tilt-top" id="spacing">
+  <div class="wrap">
+    <span class="eyebrow" style="color:var(--color-primary)">06 — Nền tảng</span>
+    <h2 class="display section-title">Khoảng cách &amp; bo góc</h2>
+    <p class="lead">Khoảng cách theo bước 4px. Section dùng khoảng đệm rộng (96–128px) để chữ lớn có chỗ thở.</p>
+    <div class="two-col">
+      <div>
+        <h3 class="sub">Khoảng cách</h3>
+        <div class="scale" id="space-scale"></div>
+      </div>
+      <div>
+        <h3 class="sub">Bo góc</h3>
+        <div class="radii">
+          <div class="radius-box" style="border-radius:var(--radius-xs)">xs<br>4px</div>
+          <div class="radius-box" style="border-radius:var(--radius-sm)">sm<br>8px</div>
+          <div class="radius-box" style="border-radius:var(--radius-md)">md<br>14px</div>
+          <div class="radius-box" style="border-radius:var(--radius-lg)">lg<br>24px</div>
+          <div class="radius-box" style="border-radius:var(--radius-xl)">xl<br>48px</div>
+          <div class="radius-box" style="border-radius:var(--radius-pill)">pill</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-yellow tilt-top">
+  <div class="wrap">
+    <p class="display">Sẵn sàng để chơi?</p>
+    <p style="margin:var(--space-2) 0 var(--space-5)">Nhập <code>tokens.css</code> vào dự án và bắt đầu dựng giao diện.</p>
+    <button class="btn">Bắt đầu <span class="arrow">→</span></button>
+  </div>
+</footer>
+
+<script>
+  const css = getComputedStyle(document.documentElement);
+  const v = n => css.getPropertyValue(n).trim();
+  const groups = {
+    "sw-brand": [
+      ["Magenta 300","--color-magenta-300"],["Magenta 500","--color-magenta-500"],["Magenta 700","--color-magenta-700"],
+      ["Purple 300","--color-purple-300"],["Purple 500","--color-purple-500"],["Purple 700","--color-purple-700"],
+      ["Yellow 300","--color-yellow-300"],["Yellow 500","--color-yellow-500"],["Yellow 700","--color-yellow-700"]],
+    "sw-accent": [["Orange","--color-orange-500"],["Sky / Focus","--color-sky-500"],["Green / Success","--color-green-500"],["Danger","--color-danger"]],
+    "sw-neutral": [["Ink 900","--color-ink-900"],["Ink 800","--color-ink-800"],["Ink 600","--color-ink-600"],["Ink 400","--color-ink-400"],
+      ["Ink 200","--color-ink-200"],["Cream 200","--color-cream-200"],["Cream 100","--color-cream-100"],["White","--color-white"]]
+  };
+  for (const [id, list] of Object.entries(groups)) {
+    document.getElementById(id).innerHTML = list.map(([name, token]) =>
+      `<div class="swatch"><div class="chip" style="background:var(${token})"></div>
+       <div class="meta"><b>${name}</b><code>${token}</code><br><code>${v(token).toUpperCase()}</code></div></div>`).join("");
+  }
+  document.getElementById("space-scale").innerHTML = [1,2,3,4,5,6,7,8,9,10].map(i => {
+    const t = `--space-${i}`; const px = parseFloat(v(t)) * 16;
+    return `<div class="scale-row"><code>${t}</code><span>${px}px</span><div class="bar" style="width:${px}px;max-width:100%"></div></div>`;
+  }).join("");
+</script>
+</body>
+</html>

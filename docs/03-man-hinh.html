@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>03 · Màn hình — Đập Chuột</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="topbar__brand" href="index.html">Đập Chuột · Docs</a>
+  <nav class="topbar__nav">
+    <a href="index.html">Mục lục</a>
+    <a href="01-tong-quan.html">01 Tổng quan</a>
+    <a href="02-chuc-nang.html">02 Chức năng</a>
+    <a href="03-man-hinh.html" aria-current="page">03 Màn hình</a>
+    <a href="04-quy-tac-du-lieu.html">04 Quy tắc &amp; dữ liệu</a>
+    <a href="05-ke-hoach-test.html">05 Kế hoạch test</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__kicker">Tài liệu 03</p>
+    <h1>Màn hình</h1>
+    <p>Ba màn hình, wireframe, thành phần UI, token giao diện, responsive và khả năng tiếp cận.</p>
+  </div>
+</section>
+
+<main>
+  <h2>1. Cấu trúc chung</h2>
+  <p>Toàn bộ game nằm trong <strong>một file <code>index.html</code></strong>. Ba màn hình là ba <code>&lt;section&gt;</code> cùng cấp; tại mỗi thời điểm chỉ một section được hiện, các section khác bị ẩn khỏi cả giao diện và cây trợ năng (dùng thuộc tính <code>hidden</code>, không chỉ <code>display:none</code> bằng class).</p>
+  <pre><code>&lt;body&gt;
+  &lt;main id="app"&gt;
+    &lt;section id="screen-start"&gt;…&lt;/section&gt;   &lt;!-- màn bắt đầu --&gt;
+    &lt;section id="screen-play"  hidden&gt;…&lt;/section&gt;   &lt;!-- màn chơi --&gt;
+    &lt;section id="screen-over"  hidden&gt;…&lt;/section&gt;   &lt;!-- màn kết thúc --&gt;
+  &lt;/main&gt;
+&lt;/body&gt;</code></pre>
+  <p>Chuyển màn hình chỉ do state machine quyết định (xem <a href="04-quy-tac-du-lieu.html">04 · Quy tắc &amp; dữ liệu</a>): <code>START → PLAYING → OVER → PLAYING</code>.</p>
+
+  <h2>2. Màn hình bắt đầu</h2>
+  <div class="wire">
+    <div class="wire__screen">
+      <div class="wire__bar"><span>Kỷ lục: 14</span><span>🔊</span></div>
+      <p class="wire__title">Đập Chuột</p>
+      <p style="text-align:center;font-size:var(--text-sm);margin:0">Đập trúng chuột được 1 điểm.<br>Bạn có 30 giây!</p>
+      <span class="wire__btn">Bắt đầu</span>
+    </div>
+    <p class="wire__caption">Wireframe — màn hình bắt đầu</p>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:12rem">Thành phần</th><th>Nội dung &amp; hành vi</th></tr></thead>
+    <tbody>
+      <tr><td>Tên game</td><td>Chữ “ĐẬP CHUỘT” in hoa, font <code>--font-display</code>, cỡ <code>--text-4xl</code>. Là <code>&lt;h1&gt;</code> của trang.</td></tr>
+      <tr><td>Mô tả luật</td><td>1–2 dòng: “Đập trúng chuột được 1 điểm. Bạn có 30 giây!”</td></tr>
+      <tr><td>Kỷ lục</td><td>“Kỷ lục: N”. <strong>Ẩn hoàn toàn</strong> nếu chưa có kỷ lục nào (chưa chơi lần nào, hoặc trình duyệt chặn lưu trữ).</td></tr>
+      <tr><td>Nút “Bắt đầu”</td><td>Nút chính dạng viên thuốc có đáy 3D. Là phần tử nhận focus đầu tiên. Bấm → FN-02.</td></tr>
+      <tr><td>Nút loa</td><td>🔊 / 🔇, góc trên phải. Bấm để bật/tắt âm thanh, trạng thái lưu lại.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>3. Màn hình chơi</h2>
+  <div class="wire">
+    <div class="wire__screen">
+      <div class="wire__bar"><span>Điểm: 7</span><span style="color:var(--color-danger)">⏱ 04</span></div>
+      <div class="wire__grid">
+        <div class="wire__cell">·</div><div class="wire__cell">·</div><div class="wire__cell">·</div>
+        <div class="wire__cell">·</div><div class="wire__cell wire__cell--live">🐭</div><div class="wire__cell">·</div>
+        <div class="wire__cell">·</div><div class="wire__cell">·</div><div class="wire__cell">·</div>
+      </div>
+      <p class="wire__caption" style="color:var(--color-ink-600)">Đồng hồ còn ≤ 5 giây → màu đỏ</p>
+    </div>
+    <p class="wire__caption">Wireframe — màn hình chơi</p>
+  </div>
+  <h3>3.1. Thanh trên cùng</h3>
+  <ul>
+    <li><strong>Điểm hiện tại</strong> bên trái: nhãn “Điểm” + số, font <code>--font-ui</code> đậm. Cập nhật ngay trong cùng khung hình với cú bấm, không có độ trễ cảm nhận được.</li>
+    <li><strong>Thời gian còn lại</strong> bên phải: số giây nguyên 30 → 0. Khi còn ≤ 5 giây: màu <code>--color-danger</code>.</li>
+    <li>Số điểm và số giây nên dùng chữ số đẳng chiều (<code>font-variant-numeric: tabular-nums</code>) để thanh không bị nhảy ngang khi số thay đổi.</li>
+    <li>Vùng điểm và vùng đồng hồ có <code>aria-live="polite"</code> để trình đọc màn hình thông báo thay đổi; riêng đồng hồ chỉ nên thông báo ở các mốc, tránh đọc liên tục mỗi giây.</li>
+  </ul>
+  <h3>3.2. Lưới 3×3</h3>
+  <ul>
+    <li><code>display: grid; grid-template-columns: repeat(3, 1fr);</code> khoảng cách <code>--space-3</code>.</li>
+    <li>Mỗi ô là hình vuông (<code>aspect-ratio: 1</code>), bo <code>--radius-md</code>, mặt bàn xen kẽ <code>--color-yellow-500</code> và <code>--color-magenta-500</code> kiểu bàn cờ, viền đậm <code>--color-ink-900</code> và đáy 3D bằng <code>--shadow-3d</code>.</li>
+    <li>Ô là phần tử bấm được (<code>&lt;button&gt;</code>) để có sẵn vùng bấm, focus và hành vi bàn phím tiêu chuẩn.</li>
+    <li>Mỗi ô chứa một <strong>hang</strong>: hình bầu dục tối, vành dày, có chút bóng trong lòng — gợi mặt máy arcade.</li>
+    <li>Chuột là <strong>ảnh PNG</strong> (<code>assets/mouse.png</code>) đặt trong hang; khi bị đập đổi sang <code>assets/mouse-stunned.png</code>.</li>
+    <li>Ảnh chuột nằm trong lớp bọc có <code>overflow: hidden</code> ôm theo miệng hang, nhờ đó lúc trồi lên trông như chuột chui ra từ dưới mặt bàn chứ không phải trượt trên bề mặt.</li>
+    <li>Ảnh dùng <code>width: 100%</code> theo ô, không ấn định kích thước bằng pixel để lưới co giãn được.</li>
+    <li>Lưới nằm giữa màn hình theo cả hai chiều, chiều rộng tối đa khoảng 28rem để trên desktop ô không bị to quá.</li>
+  </ul>
+  <h3>3.3. Hiệu ứng</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:11rem">Hiệu ứng</th><th>Mô tả</th><th style="width:12rem">Token</th></tr></thead>
+    <tbody>
+      <tr><td>Chuột trồi lên</td><td>Ảnh chuột dịch từ dưới miệng hang lên, bị hang cắt phần thân dưới, có độ nảy nhẹ ở cuối.</td><td><code>--duration-fast</code>, <code>--ease-bounce</code></td></tr>
+      <tr><td>Chuột thụt xuống</td><td>Ảnh dịch xuống khuất vào hang; không mờ dần, để giống chui xuống thật.</td><td><code>--duration-fast</code>, <code>--ease-out</code></td></tr>
+      <tr><td>Ô nháy sáng khi trúng</td><td>Nền ô chuyển nhanh sang màu nhấn rồi về lại.</td><td><code>--color-yellow-300</code></td></tr>
+      <tr><td>“+1” bay lên</td><td>Chữ “+1” hiện ở ô vừa đập, bay lên khoảng 24px và mờ dần trong ~400ms.</td><td><code>--color-success</code>, <code>--font-display</code></td></tr>
+      <tr><td>Con trỏ búa</td><td>Vùng lưới dùng <code>cursor</code> hình búa (ảnh SVG nội tuyến dạng data-URI để không cần file ngoài).</td><td>—</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">
+    <p class="note__title">Tôn trọng tùy chọn giảm chuyển động</p>
+    <p>Trong <code>@media (prefers-reduced-motion: reduce)</code>, bỏ hoạt ảnh trồi lên/thụt xuống và “+1” bay lên; chuột chỉ hiện/ẩn tức thì. Điểm, đồng hồ và luật chơi <strong>không</strong> thay đổi.</p>
+  </div>
+
+  <h2>4. Màn hình kết thúc</h2>
+  <div class="wire">
+    <div class="wire__screen">
+      <p class="wire__title" style="font-size:var(--text-2xl)">Hết giờ!</p>
+      <p style="text-align:center;margin:0"><span style="font-family:var(--font-display);font-size:var(--text-4xl);color:var(--color-primary)">17</span><br><span style="font-size:var(--text-sm)">điểm lượt này</span></p>
+      <p style="text-align:center;font-family:var(--font-ui);font-weight:700;color:var(--color-success);margin:var(--space-3) 0 0">🎉 Kỷ lục mới!</p>
+      <p style="text-align:center;font-size:var(--text-sm);margin:var(--space-1) 0 0">Kỷ lục: 17</p>
+      <span class="wire__btn">Chơi lại</span>
+    </div>
+    <p class="wire__caption">Wireframe — màn hình kết thúc (trường hợp phá kỷ lục)</p>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:12rem">Thành phần</th><th>Nội dung &amp; hành vi</th></tr></thead>
+    <tbody>
+      <tr><td>Tiêu đề</td><td>“Hết giờ!”</td></tr>
+      <tr><td>Điểm lượt vừa chơi</td><td>Số lớn, nổi bật nhất trên màn hình.</td></tr>
+      <tr><td>Kỷ lục</td><td>Luôn hiện “Kỷ lục: N” (sau lượt đầu tiên thì chắc chắn đã có giá trị). Nếu trình duyệt chặn lưu trữ, hiện kỷ lục của phiên hiện tại và không hứa giữ lại.</td></tr>
+      <tr><td>“Kỷ lục mới!”</td><td>Chỉ hiện khi điểm lượt này <strong>lớn hơn</strong> kỷ lục trước đó. Bằng điểm kỷ lục cũ thì không hiện.</td></tr>
+      <tr><td>Nút “Chơi lại”</td><td>Nút chính; bấm là vào lượt mới ngay, không qua lại màn hình bắt đầu. Nhận focus khi màn hình kết thúc xuất hiện.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>5. Token giao diện sử dụng</h2>
+  <p>Lấy từ <code>design/tokens.css</code>, không đặt giá trị cứng:</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:14rem">Vai trò</th><th>Token</th></tr></thead>
+    <tbody>
+      <tr><td>Nền trang</td><td><code>--color-bg</code> (kem ấm) hoặc dải gradient magenta → tím cho vùng hero của màn bắt đầu</td></tr>
+      <tr><td>Ô lưới</td><td><code>--color-surface-alt</code>, viền <code>--color-ink-900</code>, bo <code>--radius-md</code></td></tr>
+      <tr><td>Ô đang có chuột / nháy sáng</td><td><code>--color-yellow-300</code></td></tr>
+      <tr><td>Miệng hang</td><td>vành <code>--color-ink-900</code>, lòng hang <code>--color-ink-800</code>, bo <code>--radius-pill</code></td></tr>
+      <tr><td>Nút chính (“Bắt đầu”, “Chơi lại”)</td><td><code>--color-primary</code> + <code>box-shadow: var(--shadow-3d) var(--color-primary-deep)</code>, bo <code>--radius-pill</code></td></tr>
+      <tr><td>Tiêu đề game</td><td><code>--font-display</code>, <code>--text-4xl</code>, <code>--leading-display</code>, in hoa</td></tr>
+      <tr><td>Nhãn điểm / đồng hồ</td><td><code>--font-ui</code>, <code>--font-weight-bold</code></td></tr>
+      <tr><td>Đồng hồ cảnh báo (≤ 5 giây)</td><td><code>--color-danger</code></td></tr>
+      <tr><td>“+1” và “Kỷ lục mới!”</td><td><code>--color-success</code></td></tr>
+      <tr><td>Viền focus bàn phím</td><td><code>--color-focus</code>, độ dày ≥ 3px</td></tr>
+      <tr><td>Hoạt ảnh</td><td><code>--duration-fast</code>, <code>--duration-base</code>, <code>--ease-bounce</code>, <code>--ease-out</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">
+    <p class="note__title">Font dự phòng</p>
+    <p>Anton / Kanit / Rubik tải từ Google Fonts. Khi mở file bằng <code>file://</code> mà không có mạng, các font dự phòng trong token (Impact, system-ui…) phải cho ra bố cục vẫn đọc tốt — không để tiêu đề bị tràn hoặc ô lưới đổi kích thước.</p>
+  </div>
+
+  <h2>5b. Tài nguyên ảnh</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:16rem">File</th><th>Yêu cầu</th></tr></thead>
+    <tbody>
+      <tr><td><code>assets/mouse.png</code><br><span class="badge badge--ok">Đã có</span></td><td>Chuột 3D cartoon nhìn thẳng: thân xám, bụng kem, tai tròn to viền hồng, mắt nâu to có highlight, hai răng cửa, một tay giơ lên vẫy. PNG 512×512, nền trong suốt, thân dưới chạy thẳng tới mép dưới khung để bị miệng hang che tự nhiên.</td></tr>
+      <tr><td><code>assets/mouse-stunned.png</code><br><span class="badge badge--ok">Đã có</span></td><td>Cùng nhân vật, cùng khung và cùng tỉ lệ (độ trùng khít 99%), mắt xoáy, mày xụ, miệng méo, má ửng hồng, ba ngôi sao bay trên đầu.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note note--ok">
+    <p class="note__title">Hai ảnh đã có trong repo</p>
+    <p>Nằm ở <code>assets/</code>, bản 512×512 dùng cho game; bản gốc 1024×1024 giữ trong <code>assets/src/</code> để sau này xuất lại. Hai ảnh trùng khung tới 99% nên lúc đập trúng đổi ảnh không bị nhảy vị trí — <strong>giữ nguyên tính chất này</strong> nếu thay ảnh khác.</p>
+  </div>
+
+  <h2>6. Responsive</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:10rem">Chiều rộng</th><th>Yêu cầu</th></tr></thead>
+    <tbody>
+      <tr><td>360–479px</td><td>Lưới chiếm gần hết chiều rộng trừ lề <code>--space-4</code> mỗi bên; mỗi ô ≥ 80×80px; không cuộn ngang; toàn bộ lưới và thanh trên cùng nằm trong một màn hình, không phải cuộn dọc để thấy ô dưới cùng.</td></tr>
+      <tr><td>480–767px</td><td>Như trên, khoảng cách ô tăng lên <code>--space-3</code>.</td></tr>
+      <tr><td>≥ 768px</td><td>Lưới giới hạn chiều rộng tối đa ~28rem và căn giữa; cỡ chữ tiêu đề dùng mức trên của thang <code>clamp()</code>.</td></tr>
+      <tr><td>Màn hình ngang, chiều cao thấp (&lt; 480px)</td><td>Giảm lề dọc và cỡ tiêu đề để lưới không bị cắt.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>7. Khả năng tiếp cận</h2>
+  <ul>
+    <li>Mọi nút là <code>&lt;button&gt;</code> thật, bấm được bằng bàn phím, có viền focus rõ dùng <code>--color-focus</code>.</li>
+    <li>Ô lưới có <code>aria-label</code> theo vị trí (ví dụ “Hang 5”) và thuộc tính cho biết đang có chuột hay không.</li>
+    <li>Ảnh chuột là hình trang trí nằm trong một nút đã có nhãn, nên để <code>alt=""</code> và không cho trình đọc màn hình đọc riêng.</li>
+    <li>Không truyền thông tin chỉ bằng màu: đồng hồ sắp hết vừa đổi màu vừa có thể kèm dấu hiệu khác (đậm lên, biểu tượng).</li>
+    <li>Độ tương phản chữ trên nền ≥ 4.5:1 cho chữ thường. Lưu ý chữ trắng trên nền vàng <code>--color-yellow-500</code> không đạt — dùng chữ <code>--color-ink-900</code> trên nền vàng.</li>
+    <li>Vùng chạm mỗi ô ≥ 80×80px, cách nhau đủ để không bấm nhầm.</li>
+  </ul>
+
+  <h2>8. Màn hình đăng ký</h2>
+  <p>Màn hình thứ tư của game, thêm vào cùng cấp với ba section cũ và đặt <strong>trước</strong> màn bắt đầu trong luồng (xem <a href="02-chuc-nang.html">02 · FN-20</a>).</p>
+  <pre><code>&lt;body&gt;
+  &lt;main id="app"&gt;
+    &lt;section id="screen-signup"&gt;…&lt;/section&gt;       &lt;!-- MỚI: màn đăng ký --&gt;
+    &lt;section id="screen-start"  hidden&gt;…&lt;/section&gt;
+    &lt;section id="screen-play"   hidden&gt;…&lt;/section&gt;
+    &lt;section id="screen-over"   hidden&gt;…&lt;/section&gt;
+  &lt;/main&gt;
+&lt;/body&gt;</code></pre>
+  <p>State machine mở rộng thành <code>SIGNUP → START → PLAYING → OVER → PLAYING</code>. Nếu <code>localStorage</code> đã có <code>playerId</code>, màn <code>SIGNUP</code> bị bỏ qua và <code>screen-start</code> là section được hiện đầu tiên.</p>
+  <div class="wire">
+    <div class="wire__screen">
+      <p class="wire__title">Đăng ký chơi</p>
+      <p style="text-align:center;font-size:var(--text-sm);margin:0 0 .5rem">Nhập thông tin để bắt đầu</p>
+      <div class="wire__bar"><span>Họ và tên</span></div>
+      <div class="wire__bar"><span>Email</span></div>
+      <div class="wire__bar"><span>Số điện thoại</span></div>
+      <span class="wire__btn">Vào chơi</span>
+    </div>
+    <p class="wire__caption">Wireframe — màn hình đăng ký</p>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:12rem">Thành phần</th><th>Nội dung &amp; hành vi</th></tr></thead>
+    <tbody>
+      <tr><td>Tiêu đề</td><td>“Đăng ký chơi”, font <code>--font-display</code>, cỡ <code>--text-3xl</code>. Là <code>&lt;h1&gt;</code> khi màn này đang hiện.</td></tr>
+      <tr><td>Ô “Họ và tên”</td><td><code>&lt;input type="text" autocomplete="name"&gt;</code>, có <code>&lt;label&gt;</code> thật (không dùng placeholder thay nhãn). Nhận focus đầu tiên.</td></tr>
+      <tr><td>Ô “Email”</td><td><code>&lt;input type="email" autocomplete="email" inputmode="email"&gt;</code>. Trên điện thoại hiện bàn phím có <code>@</code>.</td></tr>
+      <tr><td>Ô “Số điện thoại”</td><td><code>&lt;input type="tel" autocomplete="tel" inputmode="tel"&gt;</code>. Trên điện thoại hiện bàn phím số.</td></tr>
+      <tr><td>Thông báo lỗi từng ô</td><td><code>&lt;p class="field__error"&gt;</code> ngay dưới ô, chữ <code>--color-danger</code>, cỡ <code>--text-sm</code>. Được nối với ô bằng <code>aria-describedby</code>; ô lỗi mang <code>aria-invalid="true"</code>. Chỗ dành cho lỗi được giữ sẵn để bảng không nhảy khi lỗi hiện ra.</td></tr>
+      <tr><td>Nút “Vào chơi”</td><td>Nút chính dạng viên thuốc như nút “Bắt đầu”. <code>disabled</code> khi còn trường trống hoặc sai. Trong lúc gửi lên server: nhãn đổi thành “Đang lưu…”, nút bị khóa để tránh bấm hai lần tạo hai lần gọi.</td></tr>
+      <tr><td>Lỗi chung</td><td>Khi server không phản hồi: một <code>div class="note"</code> phía trên nút, nội dung “Không lưu được thông tin. Kiểm tra kết nối rồi thử lại.” kèm nút “Thử lại”.</td></tr>
+      <tr><td>Nút loa</td><td>Vẫn hiện ở góc trên phải như các màn khác, để người chơi tắt tiếng trước khi vào chơi.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>8.1. Thay đổi nhỏ ở màn bắt đầu</h3>
+  <ul>
+    <li>Thêm một dòng chào phía trên tên game: “Chào <strong>Tên người chơi</strong>” (lấy từ <code>localStorage</code>, FN-24).</li>
+    <li>Thêm liên kết chữ nhỏ “Đổi người chơi” ngay dưới dòng chào → xoá <code>playerId</code> khỏi <code>localStorage</code> và quay về màn đăng ký.</li>
+    <li>Dòng kỷ lục giữ nguyên hành vi cũ (ẩn khi chưa có kỷ lục).</li>
+  </ul>
+
+  <h2>9. Trang admin</h2>
+  <p>Trang admin là <strong>tài liệu HTML riêng</strong>, không nằm trong <code>index.html</code> của game: <code>/admin</code> (đăng nhập + danh sách). Dùng lại <code>design/tokens.css</code> nhưng theo hướng gọn, mật độ cao — bảng dữ liệu, không hoạt ảnh nảy.</p>
+  <h3>9.1. Màn đăng nhập</h3>
+  <div class="wire">
+    <div class="wire__screen">
+      <p class="wire__title">Quản trị</p>
+      <div class="wire__bar"><span>Tên đăng nhập</span></div>
+      <div class="wire__bar"><span>Mật khẩu</span></div>
+      <span class="wire__btn">Đăng nhập</span>
+    </div>
+    <p class="wire__caption">Wireframe — đăng nhập admin (FN-25)</p>
+  </div>
+  <ul>
+    <li>Form <code>method="POST"</code> tới <code>/admin/login</code>, ô mật khẩu là <code>type="password" autocomplete="current-password"</code>.</li>
+    <li>Sai thông tin: một thông báo chung phía trên form, <strong>không</strong> nói rõ sai tên hay sai mật khẩu, và không điền lại mật khẩu vào ô.</li>
+    <li>Bị chặn vì nhập sai quá nhiều (FN-25): thông báo “Thử lại sau 10 phút.”, nút đăng nhập bị khóa.</li>
+  </ul>
+  <h3>9.2. Màn danh sách</h3>
+  <div class="wire">
+    <div class="wire__screen">
+      <div class="wire__bar"><span>Đăng ký · 128 người</span><span>Đăng xuất</span></div>
+      <div class="wire__bar"><span>🔍 Tìm tên / email / điện thoại</span><span>Xuất CSV</span></div>
+      <div class="wire__bar"><span>Họ tên</span><span>Email</span><span>Điện thoại</span><span>Điểm</span><span>Xoá</span></div>
+      <div class="wire__bar"><span>Nguyễn Văn A</span><span>a@vd.com</span><span>0901…</span><span>17</span><span>✕</span></div>
+      <div class="wire__bar"><span>Trần Thị B</span><span>b@vd.com</span><span>0902…</span><span>9</span><span>✕</span></div>
+      <div class="wire__bar"><span>‹ Trước</span><span>Trang 1 / 7</span><span>Sau ›</span></div>
+    </div>
+    <p class="wire__caption">Wireframe — danh sách đăng ký (FN-26 → FN-29)</p>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:12rem">Thành phần</th><th>Nội dung &amp; hành vi</th></tr></thead>
+    <tbody>
+      <tr><td>Thanh trên cùng</td><td>Bên trái: “Đăng ký · <em>N</em> người” với N là tổng số bản ghi (không phải số dòng của trang). Bên phải: nút “Đăng xuất” (FN-30).</td></tr>
+      <tr><td>Ô tìm kiếm</td><td><code>type="search"</code>, nhãn ẩn cho trình đọc màn hình, placeholder “Tìm tên, email hoặc số điện thoại”. Có nút ✕ xoá nhanh từ khóa (FN-27).</td></tr>
+      <tr><td>Nút “Xuất CSV”</td><td>Góc trên phải vùng công cụ, dạng nút phụ. Nhãn ghi rõ phạm vi khi đang lọc: “Xuất CSV (kết quả tìm kiếm)” (FN-29).</td></tr>
+      <tr><td>Bảng dữ liệu</td><td>7 cột theo FN-26. Tiêu đề cột sắp xếp được là <code>&lt;button&gt;</code> trong <code>&lt;th&gt;</code>, mang <code>aria-sort</code>. Email và điện thoại dùng <code>--font-mono</code> để dễ đối chiếu. Cột điểm căn phải.</td></tr>
+      <tr><td>Nút “Xoá” mỗi dòng</td><td>Nút biểu tượng ✕ màu <code>--color-danger</code>, nhãn trợ năng đầy đủ: “Xoá <em>Nguyễn Văn A</em>”. Mở hộp xác nhận (FN-28).</td></tr>
+      <tr><td>Hộp xác nhận xoá</td><td><code>&lt;dialog&gt;</code> giữa màn hình: nêu họ tên + email, dòng “Không thể hoàn tác.”, hai nút “Xoá” (nguy hiểm) và “Huỷ”. Focus vào “Huỷ” khi mở; <kbd>Esc</kbd> đóng.</td></tr>
+      <tr><td>Trạng thái rỗng</td><td>Chưa có ai đăng ký: “Chưa có người chơi nào đăng ký.” Tìm không ra: “Không tìm thấy bản ghi nào khớp «từ khóa».” kèm nút “Xoá bộ lọc”.</td></tr>
+      <tr><td>Phân trang</td><td>“‹ Trước — Trang <em>x</em> / <em>y</em> — Sau ›”. Nút bị khóa ở trang đầu/cuối. Từ khóa tìm kiếm được giữ khi sang trang.</td></tr>
+      <tr><td>Thông báo kết quả</td><td>Vùng <code>aria-live="polite"</code> thông báo “Đã xoá <em>Tên</em>” hoặc số kết quả tìm được, để người dùng trình đọc màn hình biết bảng vừa đổi.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>9.3. Responsive &amp; trợ năng cho hai màn mới</h3>
+  <ul>
+    <li><strong>Màn đăng ký:</strong> một cột, rộng tối đa 26rem, căn giữa. Dưới 380px các ô nhập chiếm hết chiều ngang, cao ít nhất 44px để chạm dễ.</li>
+    <li><strong>Bảng admin trên điện thoại:</strong> bọc trong <code>div class="table-wrap"</code> cho cuộn ngang, giữ nguyên cột; cột họ tên dính bên trái khi cuộn.</li>
+    <li>Mọi ô nhập đều có <code>&lt;label&gt;</code> liên kết bằng <code>for</code>/<code>id</code>; lỗi nối bằng <code>aria-describedby</code>.</li>
+    <li>Thứ tự <kbd>Tab</kbd> theo thứ tự đọc: ô tìm kiếm → Xuất CSV → tiêu đề cột → từng dòng → phân trang.</li>
+    <li>Vòng focus hiện rõ bằng <code>--color-focus</code>, không bị <code>outline: none</code> ở bất kỳ phần tử nào.</li>
+    <li>Tương phản chữ/nền ≥ 4.5:1, kể cả chữ lỗi màu <code>--color-danger</code> trên nền kem.</li>
+  </ul>
+
+  <div class="pager">
+    <a href="02-chuc-nang.html">← 02 · Chức năng</a>
+    <a href="04-quy-tac-du-lieu.html">04 · Quy tắc &amp; dữ liệu →</a>
+  </div>
+</main>
+
+<footer><div class="inner">
+  <span>Đập Chuột — tài liệu đặc tả v1.0</span>
+  <span><a href="../design/design-system.html">Design system</a></span>
+</div></footer>
+</body>
+</html>

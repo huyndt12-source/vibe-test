@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>04 · Quy tắc &amp; dữ liệu — Đập Chuột</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="topbar__brand" href="index.html">Đập Chuột · Docs</a>
+  <nav class="topbar__nav">
+    <a href="index.html">Mục lục</a>
+    <a href="01-tong-quan.html">01 Tổng quan</a>
+    <a href="02-chuc-nang.html">02 Chức năng</a>
+    <a href="03-man-hinh.html">03 Màn hình</a>
+    <a href="04-quy-tac-du-lieu.html" aria-current="page">04 Quy tắc &amp; dữ liệu</a>
+    <a href="05-ke-hoach-test.html">05 Kế hoạch test</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero__inner">
+    <p class="hero__kicker">Tài liệu 04</p>
+    <h1>Quy tắc &amp; dữ liệu</h1>
+    <p>Hằng số, state machine, mô hình state, quy tắc tính điểm, lưu trữ và xử lý edge case.</p>
+  </div>
+</section>
+
+<main>
+  <h2>1. Hằng số</h2>
+  <p>Khai báo tập trung ở một chỗ, không rải số rời rạc trong code.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:12rem">Tên</th><th style="width:8rem">Giá trị</th><th>Ý nghĩa</th></tr></thead>
+    <tbody>
+      <tr><td><code>GRID_SIZE</code></td><td>9</td><td>Số ô (3 hàng × 3 cột).</td></tr>
+      <tr><td><code>ROUND_MS</code></td><td>30000</td><td>Thời lượng một lượt (30 giây).</td></tr>
+      <tr><td><code>UP_MIN_MS</code></td><td>600</td><td>Thời gian ngắn nhất chuột ở trên mặt đất.</td></tr>
+      <tr><td><code>UP_MAX_MS</code></td><td>1200</td><td>Thời gian dài nhất chuột ở trên mặt đất.</td></tr>
+      <tr><td><code>GAP_MIN_MS</code></td><td>200</td><td>Khoảng nghỉ ngắn nhất giữa hai lần xuất hiện.</td></tr>
+      <tr><td><code>GAP_MAX_MS</code></td><td>500</td><td>Khoảng nghỉ dài nhất giữa hai lần xuất hiện.</td></tr>
+      <tr><td><code>WARN_SECONDS</code></td><td>5</td><td>Từ mốc này trở xuống, đồng hồ đổi màu cảnh báo.</td></tr>
+      <tr><td><code>STUN_MS</code></td><td>150</td><td>Thời gian hiện ảnh “bị choáng” sau khi đập trúng.</td></tr>
+      <tr><td><code>POINTS_PER_HIT</code></td><td>1</td><td>Điểm cho mỗi con chuột bị đập.</td></tr>
+      <tr><td><code>TICK_MS</code></td><td>100</td><td>Nhịp cập nhật đồng hồ (cập nhật 10 lần/giây nhưng chỉ vẽ lại khi số giây đổi) — giúp mốc kết thúc chính xác hơn nhịp 1000ms.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>2. State machine</h2>
+  <pre><code>        ┌──────────────── bấm "Chơi lại" ─────────────────┐
+        │                                                 │
+        ▼                                                 │
+   ┌─────────┐   bấm "Bắt đầu"   ┌───────────┐  hết 30s  ┌┴────────┐
+   │  START  │ ────────────────► │  PLAYING  │ ────────► │  OVER   │
+   └─────────┘                   └───────────┘           └─────────┘
+      (màn bắt đầu)                (màn chơi)            (màn kết thúc)
+
+Không có đường nào quay về START sau khi đã chơi: "Chơi lại" đi thẳng vào PLAYING.
+Chỉ ở PLAYING mới có chuột, mới có hẹn giờ đang sống và mới tính điểm.</code></pre>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:8rem">State</th><th>Việc phải làm khi <em>vào</em> state</th><th>Việc phải làm khi <em>ra khỏi</em> state</th></tr></thead>
+    <tbody>
+      <tr><td><code>START</code></td><td>Đọc kỷ lục từ bộ lưu trữ; hiện hoặc ẩn dòng kỷ lục; hiện màn bắt đầu; focus vào “Bắt đầu”.</td><td>—</td></tr>
+      <tr><td><code>PLAYING</code></td><td><code>score = 0</code>; <code>lastHole = null</code>; <code>endAt = now + ROUND_MS</code>; vẽ điểm 0 và đồng hồ 30; mở khóa bấm trên lưới; tạo <strong>một</strong> hẹn giờ đồng hồ; hẹn lần xuất hiện đầu tiên sau một khoảng nghỉ.</td><td>Hủy hẹn giờ đồng hồ; hủy hẹn “tự thụt”; hủy hẹn “spawn kế tiếp”; xóa chuột đang hiện; khóa bấm trên lưới.</td></tr>
+      <tr><td><code>OVER</code></td><td>So sánh điểm với kỷ lục, nếu lớn hơn thì lưu kỷ lục mới và đặt cờ “kỷ lục mới”; phát SFX hết giờ; hiện màn kết thúc với điểm lượt này và kỷ lục; focus vào “Chơi lại”.</td><td>Xóa cờ “kỷ lục mới”.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note note--warn">
+    <p class="note__title">Quy tắc một đồng hồ</p>
+    <p>Trước khi tạo bất kỳ hẹn giờ nào, luôn hủy hẹn giờ cùng loại đang lưu trong state. Đây là nguyên nhân phổ biến nhất của lỗi “chơi lại thì game chạy nhanh dần” và “hai đồng hồ chạy song song”.</p>
+  </div>
+
+  <h2>3. Mô hình state</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:11rem">Trường</th><th style="width:9rem">Kiểu</th><th>Ý nghĩa</th></tr></thead>
+    <tbody>
+      <tr><td><code>phase</code></td><td><code>'START' | 'PLAYING' | 'OVER'</code></td><td>State hiện tại. Quyết định màn hình nào hiện và cú bấm có được tính không.</td></tr>
+      <tr><td><code>score</code></td><td>số nguyên ≥ 0</td><td>Điểm của lượt hiện tại.</td></tr>
+      <tr><td><code>highScore</code></td><td>số nguyên ≥ 0</td><td>Kỷ lục đã biết (đọc từ bộ lưu trữ lúc tải trang).</td></tr>
+      <tr><td><code>endAt</code></td><td>mốc thời gian (ms)</td><td>Thời điểm lượt kết thúc. Nguồn duy nhất để tính số giây còn lại.</td></tr>
+      <tr><td><code>activeHole</code></td><td>0–8 hoặc <code>null</code></td><td>Ô đang có chuột. <code>null</code> nghĩa là đang trong khoảng nghỉ.</td></tr>
+      <tr><td><code>isWhacked</code></td><td>boolean</td><td>Con chuột hiện tại đã bị đập hay chưa. Dùng để chặn cộng điểm lần hai.</td></tr>
+      <tr><td><code>lastHole</code></td><td>0–8 hoặc <code>null</code></td><td>Ô của lần xuất hiện ngay trước, để không chọn lại ô đó.</td></tr>
+      <tr><td><code>timers</code></td><td>{ tick, down, spawn }</td><td>Ba id hẹn giờ đang sống: đồng hồ, “chuột tự thụt”, “sinh chuột kế tiếp”.</td></tr>
+      <tr><td><code>soundOn</code></td><td>boolean</td><td>Âm thanh đang bật hay tắt; mặc định <code>true</code>.</td></tr>
+      <tr><td><code>isNewRecord</code></td><td>boolean</td><td>Lượt vừa rồi có phá kỷ lục không; chỉ dùng để hiện thông báo ở màn kết thúc.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>4. Quy tắc chọn ô</h2>
+  <ul>
+    <li>Chọn ngẫu nhiên đều trong tập <code>{0..8} \ {lastHole}</code> — tức 8 lựa chọn, mỗi lựa chọn cùng xác suất.</li>
+    <li>Không dùng cách “chọn ngẫu nhiên rồi nếu trùng thì chọn lại trong vòng lặp” — chọn thẳng trong tập 8 phần tử để không có vòng lặp không xác định thời gian.</li>
+    <li>Lần xuất hiện <strong>đầu tiên</strong> của mỗi lượt: <code>lastHole = null</code> nên được chọn trong cả 9 ô.</li>
+    <li><code>lastHole</code> được cập nhật khi con chuột rời mặt đất — dù vì bị đập hay vì tự thụt xuống.</li>
+    <li>Quy tắc này chỉ chặn <strong>đúng một</strong> ô liền trước; ô xuất hiện lại sau hai lượt (A → B → A) là hợp lệ.</li>
+  </ul>
+
+  <h2>5. Quy tắc tính điểm</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:9rem">Phase</th><th style="width:13rem">Tình huống bấm</th><th style="width:6rem">Thay đổi điểm</th><th>Việc khác</th></tr></thead>
+    <tbody>
+      <tr><td><code>PLAYING</code></td><td>Ô bấm = <code>activeHole</code>, <code>isWhacked = false</code></td><td><strong>+1</strong></td><td>Đặt <code>isWhacked = true</code>; hủy hẹn “tự thụt”; hiện hiệu ứng trúng + “+1”; phát SFX; sau <code>STUN_MS</code> xóa chuột, đặt <code>lastHole</code>, hẹn spawn kế tiếp.</td></tr>
+      <tr><td><code>PLAYING</code></td><td>Ô bấm = <code>activeHole</code>, <code>isWhacked = true</code></td><td>0</td><td>Bỏ qua hoàn toàn.</td></tr>
+      <tr><td><code>PLAYING</code></td><td>Ô bấm ≠ <code>activeHole</code>, hoặc <code>activeHole = null</code></td><td>0</td><td>Không trừ điểm, không sinh chuột mới. Có thể thêm hiệu ứng “trượt” nhẹ, nhưng không bắt buộc.</td></tr>
+      <tr><td><code>OVER</code> / <code>START</code></td><td>Bấm bất kỳ ô nào</td><td>0</td><td>Lưới đã bị khóa (các nút ô ở trạng thái <code>disabled</code>), nên về nguyên tắc sự kiện không tới được bộ xử lý. Bộ xử lý vẫn phải tự kiểm tra <code>phase !== 'PLAYING'</code> rồi thoát sớm — phòng hai lớp.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>Kỷ lục:</strong> chỉ so sánh và lưu <strong>một lần</strong> tại thời điểm vào state <code>OVER</code>, không cập nhật liên tục trong lúc chơi. Điều kiện phá kỷ lục là <code>score &gt; highScore</code> (bằng nhau thì không coi là kỷ lục mới).</p>
+
+  <h2>6. Dữ liệu lưu trữ</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:16rem">Khóa</th><th style="width:8rem">Kiểu</th><th>Ghi chú</th></tr></thead>
+    <tbody>
+      <tr><td><code>dapchuot.highScore</code></td><td>chuỗi chứa số nguyên</td><td>Ví dụ <code>"17"</code>. Ghi khi phá kỷ lục.</td></tr>
+      <tr><td><code>dapchuot.soundOn</code></td><td><code>"1"</code> / <code>"0"</code></td><td>Ghi mỗi khi người chơi bấm nút loa. Thiếu khóa này thì hiểu là bật.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>6.1. Quy tắc đọc / ghi</h3>
+  <ul>
+    <li>Mọi lần truy cập <code>localStorage</code> phải bọc trong <code>try/catch</code>: ở chế độ riêng tư hoặc với một số chính sách <code>file://</code>, chỉ việc <em>đọc</em> thuộc tính đã có thể ném lỗi.</li>
+    <li>Giá trị đọc ra phải được kiểm tra: không phải số, số âm, hoặc không hữu hạn → coi như <code>0</code> và bỏ qua, không làm game dừng.</li>
+    <li>Ghi thất bại thì bỏ qua im lặng (không ghi Console lỗi), game tiếp tục với kỷ lục trong bộ nhớ của phiên hiện tại.</li>
+    <li>Không lưu bất cứ dữ liệu cá nhân nào. Không gọi mạng ngoài (ảnh chuột là tài nguyên cục bộ). Không cookie.</li>
+  </ul>
+  <div class="note">
+    <p class="note__title">Khi trình duyệt chặn lưu trữ</p>
+    <p>Game chạy bình thường; kỷ lục vẫn tăng trong phiên hiện tại nhưng mất khi tải lại trang. Màn hình bắt đầu chỉ ẩn dòng kỷ lục khi giá trị là 0 — không hiện thông báo lỗi cho người chơi.</p>
+  </div>
+
+  <h2>7. Xử lý edge case</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:16rem">Tình huống</th><th>Hành vi đúng</th></tr></thead>
+    <tbody>
+      <tr><td>Hết giờ đúng lúc chuột đang hiện</td><td>Chuột biến mất ngay; nếu cú bấm xảy ra sau mốc <code>endAt</code> thì không tính điểm.</td></tr>
+      <tr><td>Bấm trong khoảng <code>STUN_MS</code> (chuột đang “choáng”)</td><td>0 điểm — <code>isWhacked</code> đã là <code>true</code>.</td></tr>
+      <tr><td>Chạm nhanh hai lần trên điện thoại</td><td>Chỉ tính một lần. Dùng một loại sự kiện con trỏ duy nhất, hoặc chặn sự kiện click giả sinh sau sự kiện chạm.</td></tr>
+      <tr><td>Ẩn tab / khóa máy giữa lượt</td><td>Trình duyệt làm chậm hẹn giờ. Vì số giây suy ra từ <code>endAt</code>, khi quay lại tab đồng hồ nhảy tới giá trị đúng hoặc lượt đã kết thúc; không bao giờ chạy quá 30 giây thực.</td></tr>
+      <tr><td>Bấm “Chơi lại” hai lần rất nhanh</td><td>Chỉ một lượt chạy. Việc vào state <code>PLAYING</code> luôn hủy sạch hẹn giờ cũ trước khi tạo mới.</td></tr>
+      <tr><td>Tải lại trang giữa lượt</td><td>Không khôi phục lượt đang chơi; về màn hình bắt đầu. Điểm của lượt bị bỏ giữa <strong>không</strong> được tính vào kỷ lục.</td></tr>
+      <tr><td>Thay đổi hướng màn hình điện thoại giữa lượt</td><td>Lượt tiếp tục bình thường; lưới chỉ co giãn lại, không reset điểm hay đồng hồ.</td></tr>
+      <tr><td>Nhiều cửa sổ cùng mở game</td><td>Mỗi cửa sổ chơi độc lập. Kỷ lục dùng chung bộ lưu trữ nên cửa sổ ghi sau sẽ thắng; không cần đồng bộ giữa các tab.</td></tr>
+      <tr><td>Web Audio không khả dụng</td><td>Bỏ qua âm thanh, nút loa ở trạng thái tắt, không ghi lỗi ra Console.</td></tr>
+      <tr><td>Ảnh chuột không tải được (thiếu file, sai đường dẫn)</td><td>Ô vẫn bấm được và vẫn tính điểm bình thường; hiện emoji 🐭 thay cho ảnh. Không chặn lượt chơi, không lỗi Console.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>8. Bất biến cần luôn đúng</h2>
+  <ul>
+    <li>Số ô luôn là 9; không ô nào bị thêm hay mất suốt phiên.</li>
+    <li><code>activeHole</code> hoặc là <code>null</code>, hoặc là đúng một chỉ số trong 0–8 — không bao giờ có hai ô cùng có chuột.</li>
+    <li><code>score</code> chỉ tăng, mỗi lần tăng đúng 1, và chỉ khi <code>phase === 'PLAYING'</code>.</li>
+    <li>Mỗi lần xuất hiện chuột sinh ra tối đa 1 điểm.</li>
+    <li>Ở <code>START</code> và <code>OVER</code>: <code>timers</code> rỗng hoàn toàn và <code>activeHole === null</code>.</li>
+    <li><code>highScore</code> luôn ≥ điểm cao nhất từng đạt trong phiên này (trừ khi bộ lưu trữ bị chặn).</li>
+  </ul>
+
+  <h2>9. Dữ liệu đăng ký người chơi (v1.1)</h2>
+  <p>Mục 1–8 ở trên nói về dữ liệu <em>trong bộ nhớ của một lượt chơi</em> và <code>localStorage</code>. Mục 9 bổ sung lớp dữ liệu bền vững phía server cho tính năng đăng ký (<a href="02-chuc-nang.html">02 · FN-20…FN-30</a>).</p>
+
+  <h3>9.1. Lược đồ PostgreSQL</h3>
+  <p>Database chạy ở service <code>db</code> (ảnh <code>postgres:16-alpine</code>) trong cùng mạng Docker Compose. Dữ liệu nằm trong volume <code>pgdata</code> nên không mất khi dựng lại container. Service <code>db</code> <strong>không</strong> mở cổng ra máy chủ: chỉ service <code>app</code> truy cập được. Bảng được tạo bằng <code>CREATE TABLE IF NOT EXISTS</code> lúc app khởi động (<code>lib/db.js</code>).</p>
+  <pre><code>CREATE TABLE players (
+  id             SERIAL PRIMARY KEY,
+  full_name     TEXT    NOT NULL,
+  email          TEXT        NOT NULL UNIQUE,   -- luôn lưu ở dạng chữ thường
+  phone         TEXT    NOT NULL,
+  best_score    INTEGER NOT NULL DEFAULT 0,
+  plays         INTEGER NOT NULL DEFAULT 0,
+  created_at    TEXT    NOT NULL,          -- ISO 8601 UTC, ví dụ 2026-11-17T10:02:46Z
+  last_played_at TEXT                      -- NULL khi đăng ký xong chưa chơi lượt nào
+);
+
+CREATE INDEX idx_players_created_at ON players(created_at DESC);
+CREATE INDEX idx_players_name       ON players(full_name);
+CREATE INDEX idx_players_phone      ON players(phone);</code></pre>
+  <ul>
+    <li>Email được chuẩn hóa về chữ thường trong <code>lib/validate.js</code> <strong>trước khi</strong> chạm tới database, nên ràng buộc <code>UNIQUE</code> bắt được cả <code>An@vd.com</code> và <code>an@vd.com</code> mà không cần extension <code>citext</code> — đúng yêu cầu “email là khóa duy nhất” của FN-22. Việc thêm/cập nhật dùng một câu <code>INSERT … ON CONFLICT (email) DO UPDATE</code>, nên hai yêu cầu đồng thời cùng email vẫn chỉ ra một dòng.</li>
+    <li>Thời gian lưu dạng chuỗi ISO 8601 ở múi UTC; chỗ hiển thị mới đổi sang giờ Việt Nam. Không lưu giờ địa phương vào database.</li>
+    <li>Không có bảng admin: tài khoản quản trị đọc từ biến môi trường (mục 9.6).</li>
+    <li>App dùng connection pool tối đa 5 kết nối, chờ kết nối tối đa 5 giây. Compose có <code>healthcheck</code> bằng <code>pg_isready</code> và <code>depends_on: condition: service_healthy</code>, nên app chỉ khởi động sau khi database nhận kết nối; ngoài ra app vẫn thử lại 10 lần để không phụ thuộc hoàn toàn vào thứ tự khởi động.</li>
+  </ul>
+
+  <h3>9.2. Quy tắc kiểm tra dữ liệu nhập (FN-21)</h3>
+  <p>Áp dụng <strong>y hệt</strong> ở client và server. Server là nơi quyết định: client chỉ giúp người dùng sửa sớm, không được tin.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:9rem">Trường</th><th>Quy tắc</th><th style="width:18rem">Thông báo khi sai</th></tr></thead>
+    <tbody>
+      <tr><td><code>full_name</code></td><td>Sau khi cắt khoảng trắng hai đầu và gộp khoảng trắng liên tiếp: dài 2–80 ký tự, bắt đầu bằng một chữ cái. Cho phép chữ có dấu tiếng Việt, khoảng trắng, dấu nháy đơn, gạch nối, dấu phẩy, dấu chấm. Không cho phép chữ số và mọi ký tự khác (trong đó có <code>&lt; &gt; &amp; " /</code>).</td><td>“Họ tên phải từ 2 đến 80 ký tự, không chứa chữ số.”</td></tr>
+      <tr><td><code>email</code></td><td>Cắt khoảng trắng, chuyển về chữ thường. Dài ≤ 120 ký tự, đúng dạng <code>phần-trước@tên-miền.đuôi</code> với đúng một dấu <code>@</code> và đuôi ≥ 2 ký tự. Không chấp nhận khoảng trắng bên trong.</td><td>“Email không đúng định dạng, ví dụ: ten@vidu.com”</td></tr>
+      <tr><td><code>phone</code></td><td>Bỏ khoảng trắng, dấu chấm, gạch nối và dấu ngoặc trước khi kiểm. Chấp nhận 9–11 chữ số, có thể bắt đầu bằng <code>0</code> hoặc <code>+84</code>. Lưu vào database ở <strong>dạng đã chuẩn hóa chỉ còn chữ số, đầu số <code>0</code></strong> (ví dụ <code>+84 901 234 567</code> → <code>0901234567</code>).</td><td>“Số điện thoại phải có 9–11 chữ số, ví dụ: 0901234567”</td></tr>
+      <tr><td><code>score</code> (FN-23)</td><td>Số nguyên, <code>0 ≤ score ≤ 200</code>. Nằm ngoài khoảng, không phải số, hoặc không hữu hạn → từ chối với HTTP 400 và <strong>không</strong> tăng <code>plays</code>.</td><td>(không hiện cho người chơi; chỉ ghi log phía server)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">
+    <p class="note__title">Vì sao chặn trên 200 điểm</p>
+    <p>Mục 3 của tài liệu 02 tính ra một lượt 30 giây chỉ gặp khoảng 18–30 con chuột. Giá trị trên 200 chắc chắn là dữ liệu bị sửa tay, nên server từ chối thẳng. Đây là một rào chắn đơn giản, <strong>không</strong> phải cơ chế chống gian lận: điểm vẫn do client gửi lên nên vẫn có thể bị bịa trong khoảng hợp lệ. Chống gian lận thật sự nằm ngoài phạm vi v1.1.</p>
+  </div>
+
+  <h3>9.3. Giao diện API</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:4rem">Method</th><th style="width:15rem">Đường dẫn</th><th>Vào / ra &amp; hành vi</th><th style="width:6rem">Cần phiên admin</th></tr></thead>
+    <tbody>
+      <tr><td><code>POST</code></td><td><code>/api/players</code></td><td>Vào: <code>{ fullName, email, phone }</code>. Ra <code>201</code> (email mới) hoặc <code>200</code> (email đã có): <code>{ playerId, fullName }</code>. Dữ liệu sai → <code>400 { errors: { email: "…" } }</code>.</td><td>Không</td></tr>
+      <tr><td><code>POST</code></td><td><code>/api/players/:id/score</code></td><td>Vào: <code>{ score }</code>. Tăng <code>plays</code>, cập nhật <code>best_score</code> nếu lớn hơn, đặt <code>last_played_at</code> = hiện tại. Ra <code>200 { bestScore, plays }</code>. Không có <code>:id</code> → <code>404</code>.</td><td>Không</td></tr>
+      <tr><td><code>POST</code></td><td><code>/admin/login</code></td><td>Form tên đăng nhập + mật khẩu. Đúng → đặt cookie phiên, chuyển về <code>/admin</code>. Sai → trả lại form kèm thông báo chung (FN-25).</td><td>Không</td></tr>
+      <tr><td><code>POST</code></td><td><code>/admin/logout</code></td><td>Xoá cookie phiên, chuyển về form đăng nhập.</td><td>Có</td></tr>
+      <tr><td><code>GET</code></td><td><code>/admin</code></td><td>Trang HTML danh sách. Chưa đăng nhập → trả form đăng nhập (không chuyển hướng lộ dữ liệu).</td><td>Có</td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/admin/players</code></td><td>Tham số: <code>q</code> (từ khóa), <code>page</code> (≥1), <code>sort</code> (tên cột), <code>dir</code> (<code>asc</code>/<code>desc</code>). Ra: <code>{ total, page, pageSize: 20, rows: [...] }</code>.</td><td>Có</td></tr>
+      <tr><td><code>DELETE</code></td><td><code>/api/admin/players/:id</code></td><td>Xoá hẳn một bản ghi. Ra <code>200 { deleted: 1 }</code>; id không tồn tại → <code>404</code>.</td><td>Có</td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/admin/players.csv</code></td><td>Nhận cùng tham số <code>q</code>, <code>sort</code>, <code>dir</code> như trên nhưng <strong>bỏ qua phân trang</strong> — xuất toàn bộ tập khớp. Trả file theo mục 9.5.</td><td>Có</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li>Mọi truy vấn dùng <strong>câu lệnh tham số hóa</strong> (<code>?</code>), kể cả từ khóa tìm kiếm. Tên cột sắp xếp phải nằm trong danh sách trắng cố định, không ghép thẳng chuỗi từ <code>sort</code> vào SQL.</li>
+    <li>Tìm kiếm (FN-27) là <code>LIKE '%' || ? || '%'</code> trên ba cột <code>full_name</code>, <code>email</code>, <code>phone</code>, không phân biệt hoa/thường. Ký tự <code>%</code> và <code>_</code> trong từ khóa phải được escape để không thành ký tự đại diện.</li>
+    <li>Giới hạn thân yêu cầu ở 4KB; vượt → <code>413</code>, không đọc hết vào bộ nhớ.</li>
+    <li><code>/api/players</code> giới hạn 10 yêu cầu/phút cho mỗi IP để tránh bị dội bản ghi rác.</li>
+  </ul>
+
+  <h3>9.4. Dữ liệu lưu trên máy người chơi (bổ sung mục 6)</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:16rem">Khóa</th><th style="width:8rem">Kiểu</th><th>Ghi chú</th></tr></thead>
+    <tbody>
+      <tr><td><code>dapchuot.playerId</code></td><td>chuỗi chứa số nguyên</td><td>Nhận từ FN-22. Dùng để bỏ qua màn đăng ký và để gửi điểm. Giá trị không phải số nguyên dương → coi như chưa đăng ký, hiện lại form.</td></tr>
+      <tr><td><code>dapchuot.playerName</code></td><td>chuỗi</td><td>Chỉ để hiện dòng chào ở màn bắt đầu. Mất khóa này mà vẫn còn <code>playerId</code> → hiện chào chung “Chào bạn”.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li>Hai khóa cũ (<code>highScore</code>, <code>soundOn</code>) giữ nguyên hành vi ở mục 6 — kỷ lục vẫn là kỷ lục <em>trên máy này</em>, độc lập với <code>best_score</code> trong database.</li>
+    <li>Quy tắc <code>try/catch</code> và kiểm tra giá trị đọc ra ở mục 6.1 áp dụng y nguyên cho hai khóa mới.</li>
+    <li>Câu “Không lưu bất cứ dữ liệu cá nhân nào” ở mục 6.1 chỉ còn đúng với <code>localStorage</code> ở mức tối thiểu: từ v1.1, họ tên/email/điện thoại được gửi lên server và lưu trong database. <code>localStorage</code> vẫn <strong>không</strong> chứa email và số điện thoại.</li>
+    <li>Chặn lưu trữ hoàn toàn (chế độ riêng tư) → người chơi phải nhập lại form mỗi lần mở; FN-22 bảo đảm việc đó không sinh bản ghi trùng.</li>
+  </ul>
+
+  <h3>9.5. Định dạng file CSV (FN-29)</h3>
+  <ul>
+    <li>Tên file: <code>dang-ky-dap-chuot-YYYY-MM-DD.csv</code>, ngày theo giờ Việt Nam lúc xuất.</li>
+    <li>Mã hóa <strong>UTF-8 có BOM</strong> (<code>EF BB BF</code>) để Excel trên Windows không làm vỡ chữ có dấu.</li>
+    <li>Phân cách bằng dấu phẩy, kết dòng <code>CRLF</code>, bọc mọi ô trong dấu nháy kép; nháy kép trong nội dung được nhân đôi.</li>
+    <li>Số điện thoại xuất với một dấu nháy đơn đứng trước (<code>'0901234567</code>) để Excel không cắt số 0 đầu.</li>
+    <li>Dòng tiêu đề tiếng Việt, đúng thứ tự: <code>Họ tên, Email, Số điện thoại, Điểm cao nhất, Số lượt, Thời điểm đăng ký, Lần chơi gần nhất</code>.</li>
+    <li>Thời gian xuất theo giờ Việt Nam dạng <code>DD/MM/YYYY HH:mm</code>. Chưa chơi lượt nào → ô “Lần chơi gần nhất” để trống.</li>
+    <li>Header HTTP: <code>Content-Type: text/csv; charset=utf-8</code> và <code>Content-Disposition: attachment; filename="…"</code>.</li>
+  </ul>
+
+  <h3>9.6. Phiên đăng nhập admin (FN-25, FN-30)</h3>
+  <ul>
+    <li>Tài khoản lấy từ <code>ADMIN_USER</code> và <code>ADMIN_PASSWORD</code> khai trong <code>docker-compose.yml</code>. Thiếu một trong hai biến → server <strong>từ chối khởi động</strong> kèm thông báo rõ, thay vì chạy với trang admin mở toang.</li>
+    <li>So sánh mật khẩu bằng hàm so sánh thời gian cố định, không dùng <code>===</code> trên chuỗi.</li>
+    <li>Cookie phiên: tên <code>dapchuot_admin</code>, giá trị là token ngẫu nhiên ≥ 32 byte, các thuộc tính <code>HttpOnly; SameSite=Strict; Path=/</code> và <code>Secure</code> khi chạy sau HTTPS. Hết hạn sau 8 giờ.</li>
+    <li>Token phiên giữ trong bộ nhớ server; khởi động lại container thì mọi phiên mất hiệu lực và admin phải đăng nhập lại. Chấp nhận được ở quy mô này.</li>
+    <li>Đếm số lần đăng nhập sai theo IP trong bộ nhớ: quá 5 lần trong 10 phút → chặn IP đó 10 phút.</li>
+    <li>Không ghi mật khẩu, token phiên hay toàn bộ thân yêu cầu đăng nhập vào log.</li>
+  </ul>
+
+  <h3>9.7. Edge case bổ sung (tiếp mục 7)</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:17rem">Tình huống</th><th>Xử lý</th></tr></thead>
+    <tbody>
+      <tr><td>Đăng ký lại bằng email đã có, tên khác</td><td>Cập nhật tên và điện thoại mới vào bản ghi cũ; <code>best_score</code> và <code>plays</code> giữ nguyên; <code>created_at</code> <strong>không</strong> đổi.</td></tr>
+      <tr><td>Bấm “Vào chơi” hai lần rất nhanh</td><td>Nút bị khóa ngay lần bấm đầu (FN-20). Nếu vẫn tới server hai lần, ràng buộc <code>UNIQUE</code> trên email làm lần sau thành phép cập nhật, không tạo bản ghi thứ hai.</td></tr>
+      <tr><td>Server chết giữa lúc gửi điểm</td><td>Thử lại tối đa 2 lần, cách nhau 1 giây. Thất bại cả ba → bỏ qua, màn kết thúc vẫn hiện, kỷ lục trong <code>localStorage</code> vẫn cập nhật. Lượt đó không được tính vào <code>plays</code>.</td></tr>
+      <tr><td><code>playerId</code> trong <code>localStorage</code> trỏ tới bản ghi đã bị admin xoá</td><td>Server trả <code>404</code> khi gửi điểm → game xoá <code>playerId</code> và lần mở sau hiện lại màn đăng ký. Không báo lỗi giữa lúc đang chơi.</td></tr>
+      <tr><td>Database bận hoặc chưa sẵn sàng</td><td>Chờ kết nối tối đa 5 giây. Quá hạn hoặc bị từ chối → trả <code>503</code> và thông báo “Hệ thống đang bận, thử lại sau.”, không làm sập tiến trình.</td></tr>
+      <tr><td>Volume database còn trống lúc khởi động</td><td>Postgres tự khởi tạo cụm dữ liệu; app chạy <code>CREATE TABLE IF NOT EXISTS</code> ở mục 9.1. Không cần bước cài đặt tay.</td></tr>
+      <tr><td>Không kết nối được database sau 10 lần thử</td><td>App thoát kèm thông báo rõ lý do, thay vì chạy mà mọi yêu cầu đều lỗi.</td></tr>
+      <tr><td>Xoá bản ghi trong lúc trang khác đang mở danh sách</td><td>Trang kia bấm xoá cùng id → nhận <code>404</code>, hiện “Bản ghi đã được xoá trước đó” và tự tải lại danh sách.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>9.8. Bất biến bổ sung (tiếp mục 8)</h3>
+  <ul>
+    <li>Không bao giờ có hai dòng trong <code>players</code> cùng email (kể cả khác hoa/thường).</li>
+    <li><code>best_score</code> không bao giờ giảm, và luôn thỏa <code>0 ≤ best_score ≤ 200</code>.</li>
+    <li><code>plays</code> chỉ tăng, mỗi lượt kết thúc gửi điểm thành công làm nó tăng đúng 1.</li>
+    <li><code>plays = 0</code> thì <code>last_played_at</code> phải là <code>NULL</code>; <code>plays &gt; 0</code> thì phải có giá trị.</li>
+    <li>Không có đường nào trả dữ liệu người chơi mà không qua phiên admin hợp lệ.</li>
+    <li>Số điện thoại trong database luôn ở dạng đã chuẩn hóa (chỉ chữ số) theo mục 9.2.</li>
+    <li>Người chơi chưa có <code>playerId</code> hợp lệ không bao giờ vào được trạng thái <code>PLAYING</code>.</li>
+  </ul>
+
+  <div class="pager">
+    <a href="03-man-hinh.html">← 03 · Màn hình</a>
+    <a href="05-ke-hoach-test.html">05 · Kế hoạch test →</a>
+  </div>
+</main>
+
+<footer><div class="inner">
+  <span>Đập Chuột — tài liệu đặc tả v1.0</span>
+  <span><a href="../YEU-CAU.md">YEU-CAU.md</a></span>
+</div></footer>
+</body>
+</html>
