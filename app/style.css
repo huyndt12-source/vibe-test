@@ -309,3 +309,87 @@ body {
   }
   .plus { display: none; }
 }
+
+/* ==========================================================================
+   Màn đăng ký (docs/03 §8)
+   ========================================================================== */
+.title--signup { font-size: var(--text-3xl); }
+
+.signup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  max-width: 26rem;
+  margin-inline: auto;
+  text-align: left;
+}
+
+.field { display: flex; flex-direction: column; }
+
+.field__label {
+  font-weight: 700;
+  font-size: var(--text-sm);
+  margin-bottom: 0.25rem;
+}
+
+.field__input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+  color: var(--color-ink-900);
+  background: #fff;
+  border: 3px solid var(--color-ink-900);
+  border-radius: var(--radius-sm);
+}
+
+.field__input:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.field__input[aria-invalid="true"] { border-color: var(--color-danger); }
+
+/* Chỗ cho dòng lỗi được giữ sẵn để bố cục không nhảy khi lỗi hiện ra. */
+.field__error {
+  min-height: 1.25rem;
+  margin: 0.15rem 0 0.35rem;
+  font-size: var(--text-sm);
+  line-height: 1.25rem;
+  color: var(--color-danger);
+}
+
+.signup__alert {
+  margin: 0.25rem 0 0.5rem;
+  padding: 0.6rem 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+  background: #fff;
+  border: 2px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+}
+
+.signup .btn { margin-top: 0.5rem; }
+.btn[disabled] { opacity: 0.55; cursor: not-allowed; transform: none; filter: none; }
+
+/* Dòng chào + đổi người chơi ở màn bắt đầu */
+.greeting {
+  margin: 0 0 0.25rem;
+  font-size: var(--text-sm);
+}
+
+.linklike {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.linklike:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}

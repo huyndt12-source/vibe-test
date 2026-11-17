@@ -167,6 +167,139 @@ Chỉ ở PLAYING mới có chuột, mới có hẹn giờ đang sống và mớ
     <li><code>highScore</code> luôn ≥ điểm cao nhất từng đạt trong phiên này (trừ khi bộ lưu trữ bị chặn).</li>
   </ul>
 
+  <h2>9. Dữ liệu đăng ký người chơi (v1.1)</h2>
+  <p>Mục 1–8 ở trên nói về dữ liệu <em>trong bộ nhớ của một lượt chơi</em> và <code>localStorage</code>. Mục 9 bổ sung lớp dữ liệu bền vững phía server cho tính năng đăng ký (<a href="02-chuc-nang.html">02 · FN-20…FN-30</a>).</p>
+
+  <h3>9.1. Lược đồ PostgreSQL</h3>
+  <p>Database chạy ở service <code>db</code> (ảnh <code>postgres:16-alpine</code>) trong cùng mạng Docker Compose. Dữ liệu nằm trong volume <code>pgdata</code> nên không mất khi dựng lại container. Service <code>db</code> <strong>không</strong> mở cổng ra máy chủ: chỉ service <code>app</code> truy cập được. Bảng được tạo bằng <code>CREATE TABLE IF NOT EXISTS</code> lúc app khởi động (<code>lib/db.js</code>).</p>
+  <pre><code>CREATE TABLE players (
+  id             SERIAL PRIMARY KEY,
+  full_name     TEXT    NOT NULL,
+  email          TEXT        NOT NULL UNIQUE,   -- luôn lưu ở dạng chữ thường
+  phone         TEXT    NOT NULL,
+  best_score    INTEGER NOT NULL DEFAULT 0,
+  plays         INTEGER NOT NULL DEFAULT 0,
+  created_at    TEXT    NOT NULL,          -- ISO 8601 UTC, ví dụ 2026-11-17T10:02:46Z
+  last_played_at TEXT                      -- NULL khi đăng ký xong chưa chơi lượt nào
+);
+
+CREATE INDEX idx_players_created_at ON players(created_at DESC);
+CREATE INDEX idx_players_name       ON players(full_name);
+CREATE INDEX idx_players_phone      ON players(phone);</code></pre>
+  <ul>
+    <li>Email được chuẩn hóa về chữ thường trong <code>lib/validate.js</code> <strong>trước khi</strong> chạm tới database, nên ràng buộc <code>UNIQUE</code> bắt được cả <code>An@vd.com</code> và <code>an@vd.com</code> mà không cần extension <code>citext</code> — đúng yêu cầu “email là khóa duy nhất” của FN-22. Việc thêm/cập nhật dùng một câu <code>INSERT … ON CONFLICT (email) DO UPDATE</code>, nên hai yêu cầu đồng thời cùng email vẫn chỉ ra một dòng.</li>
+    <li>Thời gian lưu dạng chuỗi ISO 8601 ở múi UTC; chỗ hiển thị mới đổi sang giờ Việt Nam. Không lưu giờ địa phương vào database.</li>
+    <li>Không có bảng admin: tài khoản quản trị đọc từ biến môi trường (mục 9.6).</li>
+    <li>App dùng connection pool tối đa 5 kết nối, chờ kết nối tối đa 5 giây. Compose có <code>healthcheck</code> bằng <code>pg_isready</code> và <code>depends_on: condition: service_healthy</code>, nên app chỉ khởi động sau khi database nhận kết nối; ngoài ra app vẫn thử lại 10 lần để không phụ thuộc hoàn toàn vào thứ tự khởi động.</li>
+  </ul>
+
+  <h3>9.2. Quy tắc kiểm tra dữ liệu nhập (FN-21)</h3>
+  <p>Áp dụng <strong>y hệt</strong> ở client và server. Server là nơi quyết định: client chỉ giúp người dùng sửa sớm, không được tin.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:9rem">Trường</th><th>Quy tắc</th><th style="width:18rem">Thông báo khi sai</th></tr></thead>
+    <tbody>
+      <tr><td><code>full_name</code></td><td>Sau khi cắt khoảng trắng hai đầu và gộp khoảng trắng liên tiếp: dài 2–80 ký tự, bắt đầu bằng một chữ cái. Cho phép chữ có dấu tiếng Việt, khoảng trắng, dấu nháy đơn, gạch nối, dấu phẩy, dấu chấm. Không cho phép chữ số và mọi ký tự khác (trong đó có <code>&lt; &gt; &amp; " /</code>).</td><td>“Họ tên phải từ 2 đến 80 ký tự, không chứa chữ số.”</td></tr>
+      <tr><td><code>email</code></td><td>Cắt khoảng trắng, chuyển về chữ thường. Dài ≤ 120 ký tự, đúng dạng <code>phần-trước@tên-miền.đuôi</code> với đúng một dấu <code>@</code> và đuôi ≥ 2 ký tự. Không chấp nhận khoảng trắng bên trong.</td><td>“Email không đúng định dạng, ví dụ: ten@vidu.com”</td></tr>
+      <tr><td><code>phone</code></td><td>Bỏ khoảng trắng, dấu chấm, gạch nối và dấu ngoặc trước khi kiểm. Chấp nhận 9–11 chữ số, có thể bắt đầu bằng <code>0</code> hoặc <code>+84</code>. Lưu vào database ở <strong>dạng đã chuẩn hóa chỉ còn chữ số, đầu số <code>0</code></strong> (ví dụ <code>+84 901 234 567</code> → <code>0901234567</code>).</td><td>“Số điện thoại phải có 9–11 chữ số, ví dụ: 0901234567”</td></tr>
+      <tr><td><code>score</code> (FN-23)</td><td>Số nguyên, <code>0 ≤ score ≤ 200</code>. Nằm ngoài khoảng, không phải số, hoặc không hữu hạn → từ chối với HTTP 400 và <strong>không</strong> tăng <code>plays</code>.</td><td>(không hiện cho người chơi; chỉ ghi log phía server)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">
+    <p class="note__title">Vì sao chặn trên 200 điểm</p>
+    <p>Mục 3 của tài liệu 02 tính ra một lượt 30 giây chỉ gặp khoảng 18–30 con chuột. Giá trị trên 200 chắc chắn là dữ liệu bị sửa tay, nên server từ chối thẳng. Đây là một rào chắn đơn giản, <strong>không</strong> phải cơ chế chống gian lận: điểm vẫn do client gửi lên nên vẫn có thể bị bịa trong khoảng hợp lệ. Chống gian lận thật sự nằm ngoài phạm vi v1.1.</p>
+  </div>
+
+  <h3>9.3. Giao diện API</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:4rem">Method</th><th style="width:15rem">Đường dẫn</th><th>Vào / ra &amp; hành vi</th><th style="width:6rem">Cần phiên admin</th></tr></thead>
+    <tbody>
+      <tr><td><code>POST</code></td><td><code>/api/players</code></td><td>Vào: <code>{ fullName, email, phone }</code>. Ra <code>201</code> (email mới) hoặc <code>200</code> (email đã có): <code>{ playerId, fullName }</code>. Dữ liệu sai → <code>400 { errors: { email: "…" } }</code>.</td><td>Không</td></tr>
+      <tr><td><code>POST</code></td><td><code>/api/players/:id/score</code></td><td>Vào: <code>{ score }</code>. Tăng <code>plays</code>, cập nhật <code>best_score</code> nếu lớn hơn, đặt <code>last_played_at</code> = hiện tại. Ra <code>200 { bestScore, plays }</code>. Không có <code>:id</code> → <code>404</code>.</td><td>Không</td></tr>
+      <tr><td><code>POST</code></td><td><code>/admin/login</code></td><td>Form tên đăng nhập + mật khẩu. Đúng → đặt cookie phiên, chuyển về <code>/admin</code>. Sai → trả lại form kèm thông báo chung (FN-25).</td><td>Không</td></tr>
+      <tr><td><code>POST</code></td><td><code>/admin/logout</code></td><td>Xoá cookie phiên, chuyển về form đăng nhập.</td><td>Có</td></tr>
+      <tr><td><code>GET</code></td><td><code>/admin</code></td><td>Trang HTML danh sách. Chưa đăng nhập → trả form đăng nhập (không chuyển hướng lộ dữ liệu).</td><td>Có</td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/admin/players</code></td><td>Tham số: <code>q</code> (từ khóa), <code>page</code> (≥1), <code>sort</code> (tên cột), <code>dir</code> (<code>asc</code>/<code>desc</code>). Ra: <code>{ total, page, pageSize: 20, rows: [...] }</code>.</td><td>Có</td></tr>
+      <tr><td><code>DELETE</code></td><td><code>/api/admin/players/:id</code></td><td>Xoá hẳn một bản ghi. Ra <code>200 { deleted: 1 }</code>; id không tồn tại → <code>404</code>.</td><td>Có</td></tr>
+      <tr><td><code>GET</code></td><td><code>/api/admin/players.csv</code></td><td>Nhận cùng tham số <code>q</code>, <code>sort</code>, <code>dir</code> như trên nhưng <strong>bỏ qua phân trang</strong> — xuất toàn bộ tập khớp. Trả file theo mục 9.5.</td><td>Có</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li>Mọi truy vấn dùng <strong>câu lệnh tham số hóa</strong> (<code>?</code>), kể cả từ khóa tìm kiếm. Tên cột sắp xếp phải nằm trong danh sách trắng cố định, không ghép thẳng chuỗi từ <code>sort</code> vào SQL.</li>
+    <li>Tìm kiếm (FN-27) là <code>LIKE '%' || ? || '%'</code> trên ba cột <code>full_name</code>, <code>email</code>, <code>phone</code>, không phân biệt hoa/thường. Ký tự <code>%</code> và <code>_</code> trong từ khóa phải được escape để không thành ký tự đại diện.</li>
+    <li>Giới hạn thân yêu cầu ở 4KB; vượt → <code>413</code>, không đọc hết vào bộ nhớ.</li>
+    <li><code>/api/players</code> giới hạn 10 yêu cầu/phút cho mỗi IP để tránh bị dội bản ghi rác.</li>
+  </ul>
+
+  <h3>9.4. Dữ liệu lưu trên máy người chơi (bổ sung mục 6)</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:16rem">Khóa</th><th style="width:8rem">Kiểu</th><th>Ghi chú</th></tr></thead>
+    <tbody>
+      <tr><td><code>dapchuot.playerId</code></td><td>chuỗi chứa số nguyên</td><td>Nhận từ FN-22. Dùng để bỏ qua màn đăng ký và để gửi điểm. Giá trị không phải số nguyên dương → coi như chưa đăng ký, hiện lại form.</td></tr>
+      <tr><td><code>dapchuot.playerName</code></td><td>chuỗi</td><td>Chỉ để hiện dòng chào ở màn bắt đầu. Mất khóa này mà vẫn còn <code>playerId</code> → hiện chào chung “Chào bạn”.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li>Hai khóa cũ (<code>highScore</code>, <code>soundOn</code>) giữ nguyên hành vi ở mục 6 — kỷ lục vẫn là kỷ lục <em>trên máy này</em>, độc lập với <code>best_score</code> trong database.</li>
+    <li>Quy tắc <code>try/catch</code> và kiểm tra giá trị đọc ra ở mục 6.1 áp dụng y nguyên cho hai khóa mới.</li>
+    <li>Câu “Không lưu bất cứ dữ liệu cá nhân nào” ở mục 6.1 chỉ còn đúng với <code>localStorage</code> ở mức tối thiểu: từ v1.1, họ tên/email/điện thoại được gửi lên server và lưu trong database. <code>localStorage</code> vẫn <strong>không</strong> chứa email và số điện thoại.</li>
+    <li>Chặn lưu trữ hoàn toàn (chế độ riêng tư) → người chơi phải nhập lại form mỗi lần mở; FN-22 bảo đảm việc đó không sinh bản ghi trùng.</li>
+  </ul>
+
+  <h3>9.5. Định dạng file CSV (FN-29)</h3>
+  <ul>
+    <li>Tên file: <code>dang-ky-dap-chuot-YYYY-MM-DD.csv</code>, ngày theo giờ Việt Nam lúc xuất.</li>
+    <li>Mã hóa <strong>UTF-8 có BOM</strong> (<code>EF BB BF</code>) để Excel trên Windows không làm vỡ chữ có dấu.</li>
+    <li>Phân cách bằng dấu phẩy, kết dòng <code>CRLF</code>, bọc mọi ô trong dấu nháy kép; nháy kép trong nội dung được nhân đôi.</li>
+    <li>Số điện thoại xuất với một dấu nháy đơn đứng trước (<code>'0901234567</code>) để Excel không cắt số 0 đầu.</li>
+    <li>Dòng tiêu đề tiếng Việt, đúng thứ tự: <code>Họ tên, Email, Số điện thoại, Điểm cao nhất, Số lượt, Thời điểm đăng ký, Lần chơi gần nhất</code>.</li>
+    <li>Thời gian xuất theo giờ Việt Nam dạng <code>DD/MM/YYYY HH:mm</code>. Chưa chơi lượt nào → ô “Lần chơi gần nhất” để trống.</li>
+    <li>Header HTTP: <code>Content-Type: text/csv; charset=utf-8</code> và <code>Content-Disposition: attachment; filename="…"</code>.</li>
+  </ul>
+
+  <h3>9.6. Phiên đăng nhập admin (FN-25, FN-30)</h3>
+  <ul>
+    <li>Tài khoản lấy từ <code>ADMIN_USER</code> và <code>ADMIN_PASSWORD</code> khai trong <code>docker-compose.yml</code>. Thiếu một trong hai biến → server <strong>từ chối khởi động</strong> kèm thông báo rõ, thay vì chạy với trang admin mở toang.</li>
+    <li>So sánh mật khẩu bằng hàm so sánh thời gian cố định, không dùng <code>===</code> trên chuỗi.</li>
+    <li>Cookie phiên: tên <code>dapchuot_admin</code>, giá trị là token ngẫu nhiên ≥ 32 byte, các thuộc tính <code>HttpOnly; SameSite=Strict; Path=/</code> và <code>Secure</code> khi chạy sau HTTPS. Hết hạn sau 8 giờ.</li>
+    <li>Token phiên giữ trong bộ nhớ server; khởi động lại container thì mọi phiên mất hiệu lực và admin phải đăng nhập lại. Chấp nhận được ở quy mô này.</li>
+    <li>Đếm số lần đăng nhập sai theo IP trong bộ nhớ: quá 5 lần trong 10 phút → chặn IP đó 10 phút.</li>
+    <li>Không ghi mật khẩu, token phiên hay toàn bộ thân yêu cầu đăng nhập vào log.</li>
+  </ul>
+
+  <h3>9.7. Edge case bổ sung (tiếp mục 7)</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:17rem">Tình huống</th><th>Xử lý</th></tr></thead>
+    <tbody>
+      <tr><td>Đăng ký lại bằng email đã có, tên khác</td><td>Cập nhật tên và điện thoại mới vào bản ghi cũ; <code>best_score</code> và <code>plays</code> giữ nguyên; <code>created_at</code> <strong>không</strong> đổi.</td></tr>
+      <tr><td>Bấm “Vào chơi” hai lần rất nhanh</td><td>Nút bị khóa ngay lần bấm đầu (FN-20). Nếu vẫn tới server hai lần, ràng buộc <code>UNIQUE</code> trên email làm lần sau thành phép cập nhật, không tạo bản ghi thứ hai.</td></tr>
+      <tr><td>Server chết giữa lúc gửi điểm</td><td>Thử lại tối đa 2 lần, cách nhau 1 giây. Thất bại cả ba → bỏ qua, màn kết thúc vẫn hiện, kỷ lục trong <code>localStorage</code> vẫn cập nhật. Lượt đó không được tính vào <code>plays</code>.</td></tr>
+      <tr><td><code>playerId</code> trong <code>localStorage</code> trỏ tới bản ghi đã bị admin xoá</td><td>Server trả <code>404</code> khi gửi điểm → game xoá <code>playerId</code> và lần mở sau hiện lại màn đăng ký. Không báo lỗi giữa lúc đang chơi.</td></tr>
+      <tr><td>Database bận hoặc chưa sẵn sàng</td><td>Chờ kết nối tối đa 5 giây. Quá hạn hoặc bị từ chối → trả <code>503</code> và thông báo “Hệ thống đang bận, thử lại sau.”, không làm sập tiến trình.</td></tr>
+      <tr><td>Volume database còn trống lúc khởi động</td><td>Postgres tự khởi tạo cụm dữ liệu; app chạy <code>CREATE TABLE IF NOT EXISTS</code> ở mục 9.1. Không cần bước cài đặt tay.</td></tr>
+      <tr><td>Không kết nối được database sau 10 lần thử</td><td>App thoát kèm thông báo rõ lý do, thay vì chạy mà mọi yêu cầu đều lỗi.</td></tr>
+      <tr><td>Xoá bản ghi trong lúc trang khác đang mở danh sách</td><td>Trang kia bấm xoá cùng id → nhận <code>404</code>, hiện “Bản ghi đã được xoá trước đó” và tự tải lại danh sách.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>9.8. Bất biến bổ sung (tiếp mục 8)</h3>
+  <ul>
+    <li>Không bao giờ có hai dòng trong <code>players</code> cùng email (kể cả khác hoa/thường).</li>
+    <li><code>best_score</code> không bao giờ giảm, và luôn thỏa <code>0 ≤ best_score ≤ 200</code>.</li>
+    <li><code>plays</code> chỉ tăng, mỗi lượt kết thúc gửi điểm thành công làm nó tăng đúng 1.</li>
+    <li><code>plays = 0</code> thì <code>last_played_at</code> phải là <code>NULL</code>; <code>plays &gt; 0</code> thì phải có giá trị.</li>
+    <li>Không có đường nào trả dữ liệu người chơi mà không qua phiên admin hợp lệ.</li>
+    <li>Số điện thoại trong database luôn ở dạng đã chuẩn hóa (chỉ chữ số) theo mục 9.2.</li>
+    <li>Người chơi chưa có <code>playerId</code> hợp lệ không bao giờ vào được trạng thái <code>PLAYING</code>.</li>
+  </ul>
+
   <div class="pager">
     <a href="03-man-hinh.html">← 03 · Màn hình</a>
     <a href="05-ke-hoach-test.html">05 · Kế hoạch test →</a>

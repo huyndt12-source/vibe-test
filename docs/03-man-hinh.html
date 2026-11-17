@@ -198,6 +198,105 @@
     <li>Vùng chạm mỗi ô ≥ 80×80px, cách nhau đủ để không bấm nhầm.</li>
   </ul>
 
+  <h2>8. Màn hình đăng ký</h2>
+  <p>Màn hình thứ tư của game, thêm vào cùng cấp với ba section cũ và đặt <strong>trước</strong> màn bắt đầu trong luồng (xem <a href="02-chuc-nang.html">02 · FN-20</a>).</p>
+  <pre><code>&lt;body&gt;
+  &lt;main id="app"&gt;
+    &lt;section id="screen-signup"&gt;…&lt;/section&gt;       &lt;!-- MỚI: màn đăng ký --&gt;
+    &lt;section id="screen-start"  hidden&gt;…&lt;/section&gt;
+    &lt;section id="screen-play"   hidden&gt;…&lt;/section&gt;
+    &lt;section id="screen-over"   hidden&gt;…&lt;/section&gt;
+  &lt;/main&gt;
+&lt;/body&gt;</code></pre>
+  <p>State machine mở rộng thành <code>SIGNUP → START → PLAYING → OVER → PLAYING</code>. Nếu <code>localStorage</code> đã có <code>playerId</code>, màn <code>SIGNUP</code> bị bỏ qua và <code>screen-start</code> là section được hiện đầu tiên.</p>
+  <div class="wire">
+    <div class="wire__screen">
+      <p class="wire__title">Đăng ký chơi</p>
+      <p style="text-align:center;font-size:var(--text-sm);margin:0 0 .5rem">Nhập thông tin để bắt đầu</p>
+      <div class="wire__bar"><span>Họ và tên</span></div>
+      <div class="wire__bar"><span>Email</span></div>
+      <div class="wire__bar"><span>Số điện thoại</span></div>
+      <span class="wire__btn">Vào chơi</span>
+    </div>
+    <p class="wire__caption">Wireframe — màn hình đăng ký</p>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:12rem">Thành phần</th><th>Nội dung &amp; hành vi</th></tr></thead>
+    <tbody>
+      <tr><td>Tiêu đề</td><td>“Đăng ký chơi”, font <code>--font-display</code>, cỡ <code>--text-3xl</code>. Là <code>&lt;h1&gt;</code> khi màn này đang hiện.</td></tr>
+      <tr><td>Ô “Họ và tên”</td><td><code>&lt;input type="text" autocomplete="name"&gt;</code>, có <code>&lt;label&gt;</code> thật (không dùng placeholder thay nhãn). Nhận focus đầu tiên.</td></tr>
+      <tr><td>Ô “Email”</td><td><code>&lt;input type="email" autocomplete="email" inputmode="email"&gt;</code>. Trên điện thoại hiện bàn phím có <code>@</code>.</td></tr>
+      <tr><td>Ô “Số điện thoại”</td><td><code>&lt;input type="tel" autocomplete="tel" inputmode="tel"&gt;</code>. Trên điện thoại hiện bàn phím số.</td></tr>
+      <tr><td>Thông báo lỗi từng ô</td><td><code>&lt;p class="field__error"&gt;</code> ngay dưới ô, chữ <code>--color-danger</code>, cỡ <code>--text-sm</code>. Được nối với ô bằng <code>aria-describedby</code>; ô lỗi mang <code>aria-invalid="true"</code>. Chỗ dành cho lỗi được giữ sẵn để bảng không nhảy khi lỗi hiện ra.</td></tr>
+      <tr><td>Nút “Vào chơi”</td><td>Nút chính dạng viên thuốc như nút “Bắt đầu”. <code>disabled</code> khi còn trường trống hoặc sai. Trong lúc gửi lên server: nhãn đổi thành “Đang lưu…”, nút bị khóa để tránh bấm hai lần tạo hai lần gọi.</td></tr>
+      <tr><td>Lỗi chung</td><td>Khi server không phản hồi: một <code>div class="note"</code> phía trên nút, nội dung “Không lưu được thông tin. Kiểm tra kết nối rồi thử lại.” kèm nút “Thử lại”.</td></tr>
+      <tr><td>Nút loa</td><td>Vẫn hiện ở góc trên phải như các màn khác, để người chơi tắt tiếng trước khi vào chơi.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>8.1. Thay đổi nhỏ ở màn bắt đầu</h3>
+  <ul>
+    <li>Thêm một dòng chào phía trên tên game: “Chào <strong>Tên người chơi</strong>” (lấy từ <code>localStorage</code>, FN-24).</li>
+    <li>Thêm liên kết chữ nhỏ “Đổi người chơi” ngay dưới dòng chào → xoá <code>playerId</code> khỏi <code>localStorage</code> và quay về màn đăng ký.</li>
+    <li>Dòng kỷ lục giữ nguyên hành vi cũ (ẩn khi chưa có kỷ lục).</li>
+  </ul>
+
+  <h2>9. Trang admin</h2>
+  <p>Trang admin là <strong>tài liệu HTML riêng</strong>, không nằm trong <code>index.html</code> của game: <code>/admin</code> (đăng nhập + danh sách). Dùng lại <code>design/tokens.css</code> nhưng theo hướng gọn, mật độ cao — bảng dữ liệu, không hoạt ảnh nảy.</p>
+  <h3>9.1. Màn đăng nhập</h3>
+  <div class="wire">
+    <div class="wire__screen">
+      <p class="wire__title">Quản trị</p>
+      <div class="wire__bar"><span>Tên đăng nhập</span></div>
+      <div class="wire__bar"><span>Mật khẩu</span></div>
+      <span class="wire__btn">Đăng nhập</span>
+    </div>
+    <p class="wire__caption">Wireframe — đăng nhập admin (FN-25)</p>
+  </div>
+  <ul>
+    <li>Form <code>method="POST"</code> tới <code>/admin/login</code>, ô mật khẩu là <code>type="password" autocomplete="current-password"</code>.</li>
+    <li>Sai thông tin: một thông báo chung phía trên form, <strong>không</strong> nói rõ sai tên hay sai mật khẩu, và không điền lại mật khẩu vào ô.</li>
+    <li>Bị chặn vì nhập sai quá nhiều (FN-25): thông báo “Thử lại sau 10 phút.”, nút đăng nhập bị khóa.</li>
+  </ul>
+  <h3>9.2. Màn danh sách</h3>
+  <div class="wire">
+    <div class="wire__screen">
+      <div class="wire__bar"><span>Đăng ký · 128 người</span><span>Đăng xuất</span></div>
+      <div class="wire__bar"><span>🔍 Tìm tên / email / điện thoại</span><span>Xuất CSV</span></div>
+      <div class="wire__bar"><span>Họ tên</span><span>Email</span><span>Điện thoại</span><span>Điểm</span><span>Xoá</span></div>
+      <div class="wire__bar"><span>Nguyễn Văn A</span><span>a@vd.com</span><span>0901…</span><span>17</span><span>✕</span></div>
+      <div class="wire__bar"><span>Trần Thị B</span><span>b@vd.com</span><span>0902…</span><span>9</span><span>✕</span></div>
+      <div class="wire__bar"><span>‹ Trước</span><span>Trang 1 / 7</span><span>Sau ›</span></div>
+    </div>
+    <p class="wire__caption">Wireframe — danh sách đăng ký (FN-26 → FN-29)</p>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:12rem">Thành phần</th><th>Nội dung &amp; hành vi</th></tr></thead>
+    <tbody>
+      <tr><td>Thanh trên cùng</td><td>Bên trái: “Đăng ký · <em>N</em> người” với N là tổng số bản ghi (không phải số dòng của trang). Bên phải: nút “Đăng xuất” (FN-30).</td></tr>
+      <tr><td>Ô tìm kiếm</td><td><code>type="search"</code>, nhãn ẩn cho trình đọc màn hình, placeholder “Tìm tên, email hoặc số điện thoại”. Có nút ✕ xoá nhanh từ khóa (FN-27).</td></tr>
+      <tr><td>Nút “Xuất CSV”</td><td>Góc trên phải vùng công cụ, dạng nút phụ. Nhãn ghi rõ phạm vi khi đang lọc: “Xuất CSV (kết quả tìm kiếm)” (FN-29).</td></tr>
+      <tr><td>Bảng dữ liệu</td><td>7 cột theo FN-26. Tiêu đề cột sắp xếp được là <code>&lt;button&gt;</code> trong <code>&lt;th&gt;</code>, mang <code>aria-sort</code>. Email và điện thoại dùng <code>--font-mono</code> để dễ đối chiếu. Cột điểm căn phải.</td></tr>
+      <tr><td>Nút “Xoá” mỗi dòng</td><td>Nút biểu tượng ✕ màu <code>--color-danger</code>, nhãn trợ năng đầy đủ: “Xoá <em>Nguyễn Văn A</em>”. Mở hộp xác nhận (FN-28).</td></tr>
+      <tr><td>Hộp xác nhận xoá</td><td><code>&lt;dialog&gt;</code> giữa màn hình: nêu họ tên + email, dòng “Không thể hoàn tác.”, hai nút “Xoá” (nguy hiểm) và “Huỷ”. Focus vào “Huỷ” khi mở; <kbd>Esc</kbd> đóng.</td></tr>
+      <tr><td>Trạng thái rỗng</td><td>Chưa có ai đăng ký: “Chưa có người chơi nào đăng ký.” Tìm không ra: “Không tìm thấy bản ghi nào khớp «từ khóa».” kèm nút “Xoá bộ lọc”.</td></tr>
+      <tr><td>Phân trang</td><td>“‹ Trước — Trang <em>x</em> / <em>y</em> — Sau ›”. Nút bị khóa ở trang đầu/cuối. Từ khóa tìm kiếm được giữ khi sang trang.</td></tr>
+      <tr><td>Thông báo kết quả</td><td>Vùng <code>aria-live="polite"</code> thông báo “Đã xoá <em>Tên</em>” hoặc số kết quả tìm được, để người dùng trình đọc màn hình biết bảng vừa đổi.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>9.3. Responsive &amp; trợ năng cho hai màn mới</h3>
+  <ul>
+    <li><strong>Màn đăng ký:</strong> một cột, rộng tối đa 26rem, căn giữa. Dưới 380px các ô nhập chiếm hết chiều ngang, cao ít nhất 44px để chạm dễ.</li>
+    <li><strong>Bảng admin trên điện thoại:</strong> bọc trong <code>div class="table-wrap"</code> cho cuộn ngang, giữ nguyên cột; cột họ tên dính bên trái khi cuộn.</li>
+    <li>Mọi ô nhập đều có <code>&lt;label&gt;</code> liên kết bằng <code>for</code>/<code>id</code>; lỗi nối bằng <code>aria-describedby</code>.</li>
+    <li>Thứ tự <kbd>Tab</kbd> theo thứ tự đọc: ô tìm kiếm → Xuất CSV → tiêu đề cột → từng dòng → phân trang.</li>
+    <li>Vòng focus hiện rõ bằng <code>--color-focus</code>, không bị <code>outline: none</code> ở bất kỳ phần tử nào.</li>
+    <li>Tương phản chữ/nền ≥ 4.5:1, kể cả chữ lỗi màu <code>--color-danger</code> trên nền kem.</li>
+  </ul>
+
   <div class="pager">
     <a href="02-chuc-nang.html">← 02 · Chức năng</a>
     <a href="04-quy-tac-du-lieu.html">04 · Quy tắc &amp; dữ liệu →</a>

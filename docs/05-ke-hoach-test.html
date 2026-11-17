@@ -178,6 +178,126 @@
     <p>Tất cả ca <span class="badge badge--must">BB</span> pass, và Console sạch trong suốt phiên test. Ca <span class="badge badge--should">Nên</span> fail thì ghi lại thành việc cần làm tiếp, không chặn bàn giao.</p>
   </div>
 
+  <h2>8. Nhóm F — Đăng ký người chơi (v1.1)</h2>
+  <p>Mã test tiếp nối dãy cũ từ <code>TC-40</code>. Chuẩn bị thêm: container chạy với volume database còn trống, và một công cụ xem được <code>localStorage</code> (DevTools → Application).</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:4.5rem">Mã</th><th style="width:5rem">FN</th><th>Các bước</th><th>Kết quả mong đợi</th><th style="width:6rem">Mức</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TC-40</strong></td><td>FN-20</td><td>Xoá sạch <code>localStorage</code>, mở lại game.</td><td>Màn đăng ký hiện ra đầu tiên với đúng ba ô: Họ và tên, Email, Số điện thoại. Không vào được màn chơi.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-41</strong></td><td>FN-20</td><td>Để trống cả ba ô, quan sát nút “Vào chơi”.</td><td>Nút ở trạng thái khóa, bấm không có tác dụng gì.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-42</strong></td><td>FN-21</td><td>Nhập họ tên <code>A</code>, email <code>abc</code>, điện thoại <code>123</code> rồi rời khỏi từng ô.</td><td>Cả ba ô hiện thông báo lỗi tiếng Việt ngay bên dưới, viền ô đổi sang màu đỏ; nút vẫn khóa; bố cục không nhảy khi lỗi xuất hiện.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-43</strong></td><td>FN-21</td><td>Nhập họ tên có dấu đầy đủ <code>Nguyễn Thị Hồng Ánh</code>, email <code>hong.anh+test@vidu.com</code>, điện thoại <code>+84 901 234 567</code>.</td><td>Không ô nào báo lỗi; nút “Vào chơi” bật lên.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-44</strong></td><td>FN-21, FN-22</td><td>Dùng công cụ dòng lệnh gửi trực tiếp <code>POST /api/players</code> với email <code>khong-hop-le</code>, bỏ qua kiểm tra ở trình duyệt.</td><td>Server trả HTTP 400 kèm lỗi theo từng trường; không bản ghi nào được thêm vào database.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-45</strong></td><td>FN-22</td><td>Đăng ký hợp lệ, rồi kiểm tra bảng <code>players</code> trong database.</td><td>Đúng một dòng; số điện thoại đã chuẩn hóa còn <code>0901234567</code>; email ở dạng chữ thường; <code>plays = 0</code>, <code>best_score = 0</code>, <code>last_played_at</code> rỗng.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-46</strong></td><td>FN-22</td><td>Bấm “Đổi người chơi”, đăng ký lại bằng <strong>cùng email viết hoa</strong> (<code>HONG.ANH+TEST@VIDU.COM</code>) nhưng họ tên và điện thoại khác.</td><td>Vẫn chỉ một dòng trong database; họ tên và điện thoại là giá trị mới; <code>created_at</code> không đổi; <code>best_score</code>, <code>plays</code> giữ nguyên.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-47</strong></td><td>FN-20</td><td>Bấm “Vào chơi” hai lần liên tiếp thật nhanh (double-click).</td><td>Chỉ một yêu cầu được gửi (xem tab Network); nhãn nút đổi thành “Đang lưu…”; database không có bản ghi trùng.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-48</strong></td><td>FN-24</td><td>Sau khi đăng ký, tải lại trang.</td><td>Màn đăng ký bị bỏ qua; màn bắt đầu hiện dòng chào đúng tên người chơi và liên kết “Đổi người chơi”.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>TC-49</strong></td><td>FN-24</td><td>Bấm “Đổi người chơi”.</td><td><code>dapchuot.playerId</code> bị xoá khỏi <code>localStorage</code>; màn đăng ký hiện lại với các ô trống.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>TC-50</strong></td><td>FN-23</td><td>Chơi hết một lượt, ghi lại điểm cuối lượt, rồi xem database.</td><td><code>plays = 1</code>; <code>best_score</code> bằng đúng điểm vừa đạt; <code>last_played_at</code> có thời gian hợp lệ.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-51</strong></td><td>FN-23</td><td>Chơi lượt thứ hai, cố tình đạt điểm <strong>thấp hơn</strong> lượt đầu.</td><td><code>plays = 2</code>; <code>best_score</code> <strong>không giảm</strong>, vẫn là điểm của lượt cao hơn.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-52</strong></td><td>FN-23</td><td>Dừng container server, rồi chơi xong một lượt trong tab đang mở.</td><td>Màn kết thúc vẫn hiện bình thường, điểm và kỷ lục local vẫn đúng; không có hộp lỗi nào đập vào mặt người chơi; Console không có lỗi chưa bắt (unhandled).</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-53</strong></td><td>FN-23</td><td>Gửi trực tiếp <code>POST /api/players/:id/score</code> với <code>score = 9999</code>.</td><td>HTTP 400; <code>best_score</code> và <code>plays</code> trong database không đổi.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-54</strong></td><td>FN-20</td><td>Mở màn đăng ký trên điện thoại thật, chạm lần lượt vào ba ô.</td><td>Ô email hiện bàn phím có <code>@</code>; ô điện thoại hiện bàn phím số; mọi ô cao ít nhất 44px, không bị trang phóng to khi focus.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>TC-55</strong></td><td>FN-20</td><td>Chỉ dùng bàn phím: <kbd>Tab</kbd> qua ba ô và nút, điền dữ liệu hợp lệ, bấm <kbd>Enter</kbd>.</td><td>Thứ tự focus theo thứ tự đọc, vòng focus hiện rõ ở mọi bước; <kbd>Enter</kbd> gửi form; vào được màn bắt đầu.</td><td><span class="badge badge--must">BB</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>9. Nhóm G — Trang admin (v1.1)</h2>
+  <p>Chuẩn bị: database có sẵn ít nhất 25 bản ghi (để kiểm phân trang), trong đó có tên có dấu tiếng Việt và ít nhất một người chưa chơi lượt nào.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:4.5rem">Mã</th><th style="width:5rem">FN</th><th>Các bước</th><th>Kết quả mong đợi</th><th style="width:6rem">Mức</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TC-60</strong></td><td>FN-30</td><td>Mở <code>/admin</code> ở cửa sổ riêng tư (chưa đăng nhập).</td><td>Hiện form đăng nhập; <strong>không</strong> thấy bất kỳ họ tên, email hay số điện thoại nào, kể cả trong mã nguồn trang.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-61</strong></td><td>FN-30</td><td>Gọi trực tiếp <code>GET /api/admin/players</code> và <code>GET /api/admin/players.csv</code> khi không có cookie phiên.</td><td>Cả hai trả HTTP 401 kèm JSON; thân phản hồi không chứa dữ liệu người chơi.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-62</strong></td><td>FN-25</td><td>Đăng nhập với mật khẩu sai.</td><td>Thông báo chung “Tên đăng nhập hoặc mật khẩu không đúng”; không nói rõ trường nào sai; ô mật khẩu bị xoá trống.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-63</strong></td><td>FN-25</td><td>Nhập sai 6 lần liên tiếp trong vòng 10 phút.</td><td>Từ lần thứ 6 bị chặn với thông báo “Thử lại sau 10 phút.”; nhập đúng mật khẩu trong lúc bị chặn cũng không vào được.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-64</strong></td><td>FN-25</td><td>Đăng nhập đúng, rồi xem cookie trong DevTools.</td><td>Vào được danh sách; cookie <code>dapchuot_admin</code> có cờ <code>HttpOnly</code> và <code>SameSite=Strict</code>; không đọc được bằng <code>document.cookie</code>.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-65</strong></td><td>FN-26</td><td>Quan sát bảng danh sách vừa mở.</td><td>Đủ 7 cột theo FN-26; sắp xếp mặc định người đăng ký mới nhất ở trên; hiện đúng tổng số bản ghi; mỗi trang 20 dòng.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-66</strong></td><td>FN-26</td><td>Bấm tiêu đề cột “Điểm cao nhất” hai lần.</td><td>Lần đầu sắp xếp một chiều, lần hai đảo chiều; <code>aria-sort</code> của cột đổi theo; dữ liệu đúng thứ tự.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>TC-67</strong></td><td>FN-26</td><td>Xem dòng của người chưa chơi lượt nào.</td><td>Điểm cao nhất là 0, số lượt là 0, ô “Lần chơi gần nhất” để trống (không hiện <code>null</code> hay <code>Invalid Date</code>).</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-68</strong></td><td>FN-27</td><td>Tìm bằng một phần họ tên viết <strong>sai hoa/thường</strong>, ví dụ <code>nGuYễn</code>.</td><td>Vẫn ra đúng các bản ghi khớp; số kết quả được thông báo cho trình đọc màn hình.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-69</strong></td><td>FN-27</td><td>Lần lượt tìm bằng một phần email, rồi bằng 4 chữ số cuối của số điện thoại.</td><td>Cả hai cách đều ra đúng bản ghi mong đợi.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-70</strong></td><td>FN-27</td><td>Tìm một chuỗi chắc chắn không tồn tại, ví dụ <code>zzzqqq</code>.</td><td>Hiện “Không tìm thấy bản ghi nào khớp «zzzqqq»” và nút “Xoá bộ lọc”; không hiện bảng rỗng trơ trụi.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-71</strong></td><td>FN-27</td><td>Tìm bằng ký tự <code>%</code> và <code>_</code>, rồi bằng <code>' OR 1=1 --</code>.</td><td><code>%</code> và <code>_</code> được coi là ký tự thường (ra 0 kết quả nếu không ai có chúng), không khớp mọi dòng; chuỗi SQL không gây lỗi và không trả về toàn bộ bảng.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-72</strong></td><td>FN-27, FN-26</td><td>Tìm một từ khóa cho ra hơn 20 kết quả, rồi bấm “Sau ›”.</td><td>Từ khóa được giữ khi sang trang 2; tổng số và số trang tính theo tập đã lọc, không phải toàn bộ bảng.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>TC-73</strong></td><td>FN-28</td><td>Bấm nút “Xoá” ở một dòng, rồi bấm “Huỷ” trong hộp xác nhận.</td><td>Hộp nêu rõ họ tên + email và câu “Không thể hoàn tác.”; bấm Huỷ (hoặc <kbd>Esc</kbd>) → không xoá gì; bản ghi còn trong database.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-74</strong></td><td>FN-28</td><td>Bấm “Xoá” và xác nhận.</td><td>Dòng biến mất khỏi bảng; thông báo “Đã xoá <em>Tên</em>” hiện ra; bản ghi mất khỏi database; tổng số giảm 1.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-75</strong></td><td>FN-28</td><td>Mở <code>/admin</code> ở hai tab, xoá cùng một bản ghi ở tab A rồi xoá nó ở tab B.</td><td>Tab B nhận HTTP 404, hiện “Bản ghi đã được xoá trước đó” và tự tải lại danh sách; không có lỗi chưa bắt trong Console.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>TC-76</strong></td><td>FN-29</td><td>Bấm “Xuất CSV” khi <strong>không</strong> có từ khóa tìm kiếm, mở file bằng Excel.</td><td>File tên <code>dang-ky-dap-chuot-YYYY-MM-DD.csv</code>; đủ tất cả bản ghi (không chỉ 20 dòng của trang 1); tiêu đề tiếng Việt đúng 7 cột.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-77</strong></td><td>FN-29</td><td>Kiểm tra chữ có dấu và số điện thoại trong file mở bằng Excel.</td><td>Tên có dấu hiện đúng (nhờ BOM UTF-8); số điện thoại giữ nguyên số 0 đầu, không bị đổi thành dạng khoa học.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-78</strong></td><td>FN-29</td><td>Nhập một từ khóa lọc còn vài kết quả, rồi bấm “Xuất CSV”.</td><td>File chỉ chứa đúng các bản ghi khớp từ khóa, không phải toàn bộ bảng; nhãn nút có ghi rõ đang xuất kết quả tìm kiếm.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-79</strong></td><td>FN-29</td><td>Thêm một người chơi có họ tên chứa dấu phẩy, ví dụ <code>Lê Thị Cúc, Nhà A</code>, rồi xuất CSV.</td><td>File vẫn đúng cấu trúc cột; ô có dấu phẩy không bị tách thành hai cột. (Dấu nháy kép không nằm trong tập ký tự hợp lệ của họ tên — xem mục 9.2 của tài liệu 04.)</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-80</strong></td><td>FN-30</td><td>Bấm “Đăng xuất”, rồi bấm nút Back của trình duyệt.</td><td>Về form đăng nhập; Back không hiện lại danh sách có dữ liệu; gọi lại API admin trả 401.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-81</strong></td><td>FN-26</td><td>Mở trang admin trên điện thoại, cuộn bảng ngang.</td><td>Bảng cuộn ngang trong khung, không làm cả trang bị tràn; cột họ tên vẫn thấy được khi cuộn.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>10. Nhóm H — Dữ liệu &amp; triển khai (v1.1)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:4.5rem">Mã</th><th style="width:5rem">FN</th><th>Các bước</th><th>Kết quả mong đợi</th><th style="width:6rem">Mức</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TC-90</strong></td><td>—</td><td>Xoá volume <code>pgdata</code> (<code>docker compose down -v</code>), khởi động lại lần đầu.</td><td>Postgres khởi tạo xong, app tạo bảng <code>players</code> tự động; không cần bước cài đặt tay; log app in “đã kết nối và bảo đảm lược đồ players”.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-91</strong></td><td>—</td><td>Đăng ký vài người, chạy <code>docker compose down</code> rồi <code>up -d</code> lại.</td><td>Danh sách trong trang admin còn nguyên — dữ liệu nằm trong volume, không mất khi dựng lại container.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-92</strong></td><td>FN-25</td><td>Bỏ biến <code>ADMIN_PASSWORD</code> khỏi cấu hình rồi khởi động.</td><td>Server <strong>không</strong> khởi động, in thông báo rõ là thiếu biến môi trường nào. Trang admin tuyệt đối không chạy ở trạng thái không mật khẩu.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-93</strong></td><td>—</td><td>Đăng nhập admin và đăng ký người chơi, rồi đọc log container.</td><td>Log không chứa mật khẩu, token phiên, hay toàn bộ thân yêu cầu đăng nhập.</td><td><span class="badge badge--must">BB</span></td></tr>
+      <tr><td><strong>TC-94</strong></td><td>—</td><td>Gửi <code>POST /api/players</code> 15 lần trong một phút từ cùng một máy.</td><td>Các yêu cầu vượt mức 10/phút bị từ chối (HTTP 429); server không sập và vẫn phục vụ các đường dẫn khác.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>TC-95</strong></td><td>FN-23</td><td>Xoá một người chơi trong trang admin, rồi chơi xong một lượt ở tab game vẫn còn <code>playerId</code> đó.</td><td>Màn kết thúc hiện bình thường; lần mở game sau đó hiện lại màn đăng ký; không có lỗi phơi ra cho người chơi.</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>TC-96</strong></td><td>—</td><td>Kiểm tra lại toàn bộ Nhóm A–E sau khi thêm tính năng đăng ký.</td><td>Mọi test cũ vẫn đạt — luật chơi, tính điểm, đồng hồ, kỷ lục local không bị tính năng mới làm hỏng.</td><td><span class="badge badge--must">BB</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>11. Checklist bàn giao bổ sung (v1.1)</h2>
+  <div class="grid grid--2">
+    <div class="card">
+      <h4>Đăng ký người chơi</h4>
+      <ul class="checklist">
+        <li>Chưa đăng ký thì không vào được màn chơi <em>(TC-40)</em></li>
+        <li>Ba trường đều được kiểm, lỗi hiện rõ tiếng Việt <em>(TC-42)</em></li>
+        <li>Server cũng kiểm, không chỉ trình duyệt <em>(TC-44)</em></li>
+        <li>Cùng email không sinh bản ghi trùng <em>(TC-46, TC-47)</em></li>
+        <li>Điểm cao nhất không bao giờ giảm <em>(TC-51)</em></li>
+        <li>Server chết vẫn chơi được, không lỗi phơi ra <em>(TC-52)</em></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Trang admin</h4>
+      <ul class="checklist">
+        <li>Chưa đăng nhập không thấy dữ liệu nào <em>(TC-60, TC-61)</em></li>
+        <li>Sai mật khẩu nhiều lần bị chặn tạm <em>(TC-63)</em></li>
+        <li>Cookie phiên có HttpOnly <em>(TC-64)</em></li>
+        <li>Tìm được theo tên, email, điện thoại <em>(TC-68, TC-69)</em></li>
+        <li>Từ khóa lạ không phá được truy vấn <em>(TC-71)</em></li>
+        <li>Xoá có xác nhận, xoá hẳn <em>(TC-73, TC-74)</em></li>
+        <li>CSV mở bằng Excel không vỡ chữ, không mất số 0 <em>(TC-77)</em></li>
+        <li>CSV xuất đúng tập đang lọc <em>(TC-78)</em></li>
+        <li>Đăng xuất rồi Back không lộ dữ liệu <em>(TC-80)</em></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Dữ liệu &amp; triển khai</h4>
+      <ul class="checklist">
+        <li>Database tự tạo lần đầu chạy <em>(TC-90)</em></li>
+        <li>Dữ liệu còn nguyên sau khi dựng lại container <em>(TC-91)</em></li>
+        <li>Thiếu biến mật khẩu thì server không chạy <em>(TC-92)</em></li>
+        <li>Log không chứa mật khẩu hay token <em>(TC-93)</em></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Không làm hỏng cái cũ</h4>
+      <ul class="checklist">
+        <li>Toàn bộ Nhóm A–E vẫn đạt <em>(TC-96)</em></li>
+        <li>Kỷ lục trong localStorage vẫn hoạt động như v1.0</li>
+        <li>Nút loa và âm thanh không bị ảnh hưởng</li>
+      </ul>
+    </div>
+  </div>
+
   <div class="pager">
     <a href="04-quy-tac-du-lieu.html">← 04 · Quy tắc &amp; dữ liệu</a>
     <a href="index.html">Mục lục →</a>

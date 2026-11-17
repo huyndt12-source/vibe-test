@@ -353,6 +353,11 @@
 
     sfxTimeUp();
     showScreen('OVER');
+
+    // FN-23: gửi điểm lượt này lên server. Lỗi mạng không ảnh hưởng màn kết thúc.
+    if (window.DapChuotPlayer && window.DapChuotPlayer.reportScore) {
+      window.DapChuotPlayer.reportScore(state.score);
+    }
     btnReplay.focus({ preventScroll: true });
   }
 

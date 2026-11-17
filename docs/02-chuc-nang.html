@@ -132,6 +132,68 @@ KẾT THÚC LƯỢT
   </table>
   </div>
 
+  <h2>7. Đăng ký người chơi &amp; trang admin</h2>
+  <p>Mục này bổ sung cho phiên bản v1.1. Mã chức năng tiếp nối dãy cũ từ <code>FN-20</code> để không đụng vào <code>FN-01…FN-14</code>.</p>
+  <div class="note">
+    <p class="note__title">Ba quyết định đã chốt</p>
+    <p>① Dữ liệu lưu bằng <strong>PostgreSQL</strong> chạy ở service <code>db</code> của Docker Compose, dữ liệu nằm trong volume <code>pgdata</code>. ② <strong>Email là khóa duy nhất</strong>: chơi lại không tạo bản ghi mới, chỉ cập nhật điểm cao nhất và số lượt. ③ Trang admin dùng <strong>một tài khoản duy nhất</strong> lấy từ biến môi trường <code>ADMIN_USER</code> / <code>ADMIN_PASSWORD</code>, không có bảng người dùng.</p>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th style="width:5rem">Mã</th><th style="width:12rem">Tên</th><th>Mô tả &amp; tiêu chí chấp nhận</th><th style="width:7rem">Mức</th></tr></thead>
+    <tbody>
+      <tr><td><strong>FN-20</strong></td><td>Form đăng ký</td><td>Trước khi vào màn chơi, người chơi mới phải nhập <strong>họ tên</strong>, <strong>email</strong>, <strong>số điện thoại</strong>. Nút “Bắt đầu” của màn chơi chỉ bật khi cả ba trường hợp lệ. Chưa đăng ký thì không vào được màn chơi bằng bất cứ đường nào.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-21</strong></td><td>Kiểm tra dữ liệu nhập</td><td>Kiểm ở cả client và server theo quy tắc ở <a href="04-quy-tac-du-lieu.html">04 · mục 9.2</a>. Mỗi trường sai hiện thông báo tiếng Việt ngay dưới ô nhập, ô nhập nhận viền <code>--color-danger</code> và <code>aria-invalid="true"</code>. Sai ở server → HTTP 400 kèm danh sách lỗi theo từng trường, không lưu gì.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-22</strong></td><td>Lưu người chơi</td><td><code>POST /api/players</code>: email chưa có → thêm bản ghi mới; email đã có → cập nhật họ tên và số điện thoại mới nhất, <strong>không</strong> tạo dòng thứ hai. Trả về <code>playerId</code>. Email so sánh không phân biệt chữ hoa/thường và cắt khoảng trắng hai đầu.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-23</strong></td><td>Gắn điểm vào người chơi</td><td>Kết thúc mỗi lượt (sau FN-08), game gửi <code>POST /api/players/:id/score</code> với điểm của lượt. Server tăng <code>plays</code> lên 1 và chỉ ghi <code>best_score</code> khi điểm mới lớn hơn. Gửi thất bại (mất mạng, server chết) → game vẫn hiện màn kết thúc bình thường, chỉ ghi nhận lặng lẽ là chưa đồng bộ, thử lại tối đa 2 lần.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-24</strong></td><td>Ghi nhớ người chơi</td><td><code>playerId</code> và họ tên lưu vào <code>localStorage</code>. Lần mở sau, game bỏ qua form đăng ký, vào thẳng màn bắt đầu và chào “Chào <em>Tên</em>”, kèm liên kết “Đổi người chơi” để quay lại form. Mất <code>localStorage</code> → hiện lại form, đăng ký lại cùng email không sinh bản ghi trùng (FN-22).</td><td><span class="badge badge--should">Đã chốt</span></td></tr>
+      <tr><td><strong>FN-25</strong></td><td>Đăng nhập admin</td><td><code>/admin</code> chưa đăng nhập → hiện form tên đăng nhập + mật khẩu. Đúng → tạo cookie phiên <code>HttpOnly</code>, hết hạn sau 8 giờ. Sai → thông báo chung “Tên đăng nhập hoặc mật khẩu không đúng”, <strong>không</strong> tiết lộ trường nào sai. Quá 5 lần sai trong 10 phút từ cùng một IP → chặn 10 phút.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-26</strong></td><td>Danh sách đăng ký</td><td>Bảng gồm: họ tên, email, số điện thoại, điểm cao nhất, số lượt, thời điểm đăng ký, lần chơi gần nhất. Sắp xếp mặc định theo thời điểm đăng ký mới nhất trước; bấm tiêu đề cột để đổi chiều sắp xếp. Phân trang 20 dòng mỗi trang, hiện tổng số bản ghi.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-27</strong></td><td>Tìm kiếm</td><td>Một ô tìm kiếm, khớp chuỗi con không phân biệt hoa/thường trên <strong>họ tên, email và số điện thoại</strong>. Kết quả cập nhật khi bấm Enter hoặc sau 300ms ngừng nhập. Không có kết quả → hiện “Không tìm thấy bản ghi nào khớp «…»”, không hiện bảng rỗng vô nghĩa.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-28</strong></td><td>Xoá bản ghi</td><td>Mỗi dòng có nút “Xoá”. Bấm → hộp xác nhận nêu rõ họ tên + email và câu “Không thể hoàn tác”. Đồng ý → <code>DELETE /api/admin/players/:id</code>, dòng biến mất, hiện thông báo “Đã xoá <em>Tên</em>”. Bản ghi bị xoá là xoá hẳn, không còn trong CSV xuất sau đó.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-29</strong></td><td>Xuất CSV</td><td>Nút “Xuất CSV” tải về <code>dang-ky-dap-chuot-YYYY-MM-DD.csv</code>. Xuất <strong>đúng tập đang được lọc</strong> bởi ô tìm kiếm (không chỉ trang hiện tại). Định dạng file theo <a href="04-quy-tac-du-lieu.html">04 · mục 9.5</a>: UTF-8 có BOM, phân cách bằng dấu phẩy, mở bằng Excel tiếng Việt không vỡ chữ.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+      <tr><td><strong>FN-30</strong></td><td>Đăng xuất &amp; bảo vệ đường dẫn</td><td>Nút “Đăng xuất” xoá cookie phiên và trả về form đăng nhập. Mọi đường dẫn <code>/admin*</code> và <code>/api/admin/*</code> khi không có phiên hợp lệ → trang HTML trả về form đăng nhập, API trả HTTP 401 kèm JSON, <strong>không bao giờ</strong> trả dữ liệu người chơi.</td><td><span class="badge badge--must">Bắt buộc</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>7.1. Luồng từ đăng ký đến khi điểm được lưu</h3>
+  <pre><code>MỞ GAME
+   │
+   ├─ localStorage có playerId ────────────────► MÀN BẮT ĐẦU (chào "Tên")   → FN-24
+   │                                                   │
+   └─ chưa có playerId
+         ▼
+      MÀN ĐĂNG KÝ                                                          → FN-20
+         nhập họ tên / email / số điện thoại
+         │
+         ├─ dữ liệu sai  → hiện lỗi dưới từng ô, ở lại màn này             → FN-21
+         │
+         └─ dữ liệu đúng → POST /api/players                               → FN-22
+                 │  email mới  → INSERT, trả playerId
+                 │  email cũ   → UPDATE tên + điện thoại, trả playerId cũ
+                 ▼
+              lưu playerId vào localStorage                                → FN-24
+                 ▼
+      MÀN BẮT ĐẦU ──► MÀN CHƠI ──► HẾT GIỜ (FN-08)
+                                       │
+                                       ▼
+                       POST /api/players/:id/score  { score }              → FN-23
+                          plays = plays + 1
+                          best_score = MAX(best_score, score)
+                                       │
+                          ├─ thành công → màn kết thúc
+                          └─ lỗi mạng   → thử lại ≤ 2 lần, rồi bỏ qua im lặng
+                                          (màn kết thúc vẫn hiện bình thường)</code></pre>
+
+  <h3>7.2. Phạm vi không làm ở v1.1</h3>
+  <ul>
+    <li>Không xác thực email bằng thư kích hoạt, không gửi OTP qua số điện thoại — dữ liệu nhập được tin ở mức khai báo.</li>
+    <li>Không có bảng xếp hạng công khai cho người chơi; điểm chỉ xem được trong trang admin.</li>
+    <li>Không sửa bản ghi trong trang admin (chỉ xem, tìm, xoá, xuất). Sửa tên hay điện thoại thực hiện bằng cách người chơi đăng ký lại cùng email (FN-22).</li>
+    <li>Không nhập CSV vào hệ thống, không phân quyền nhiều cấp admin.</li>
+  </ul>
+
   <div class="pager">
     <a href="01-tong-quan.html">← 01 · Tổng quan</a>
     <a href="03-man-hinh.html">03 · Màn hình →</a>

@@ -1,10 +1,36 @@
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: dap-chuot-db
+    env_file: .env
+    environment:
+      # Dữ liệu nằm trong volume pgdata, không mất khi dựng lại container.
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # App chỉ khởi động sau khi database thật sự nhận kết nối.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    # Không mở cổng ra ngoài máy: chỉ app trong mạng Compose cần truy cập.
+
   app:
     build: .
     image: dap-chuot:latest
     container_name: dap-chuot
     ports:
       - "3000:3000"
+    env_file: .env
     environment:
       PORT: "3000"
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  pgdata:

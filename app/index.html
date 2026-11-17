@@ -13,6 +13,41 @@
 
 <main id="app">
 
+  <!-- ===== SIGNUP (docs/03 §8) ===== -->
+  <section class="screen screen--panel" id="screen-signup" hidden>
+    <div class="panel">
+      <h1 class="display title title--signup">Đăng ký chơi</h1>
+      <p class="lead">Nhập thông tin để bắt đầu</p>
+
+      <form class="signup" id="signup-form" novalidate>
+        <div class="field">
+          <label class="field__label" for="signup-fullName">Họ và tên</label>
+          <input class="field__input" id="signup-fullName" name="fullName" type="text"
+                 autocomplete="name" aria-describedby="signup-fullName-error" required>
+          <p class="field__error" id="signup-fullName-error" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="signup-email">Email</label>
+          <input class="field__input" id="signup-email" name="email" type="email"
+                 autocomplete="email" inputmode="email" aria-describedby="signup-email-error" required>
+          <p class="field__error" id="signup-email-error" aria-live="polite"></p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="signup-phone">Số điện thoại</label>
+          <input class="field__input" id="signup-phone" name="phone" type="tel"
+                 autocomplete="tel" inputmode="tel" aria-describedby="signup-phone-error" required>
+          <p class="field__error" id="signup-phone-error" aria-live="polite"></p>
+        </div>
+
+        <p class="signup__alert" id="signup-error" role="alert" hidden></p>
+
+        <button class="btn btn--lg" id="signup-submit" type="submit" disabled>Vào chơi</button>
+      </form>
+    </div>
+  </section>
+
   <!-- ===== START ===== -->
   <section class="screen screen--panel" id="screen-start">
     <div class="panel">
@@ -22,6 +57,11 @@
           <span aria-hidden="true" data-sound-icon>🔊</span>
         </button>
       </div>
+
+      <p class="greeting" id="start-greeting" hidden>
+        Chào <strong id="start-greeting-name">bạn</strong> ·
+        <button class="linklike" id="btn-switch-player" type="button">Đổi người chơi</button>
+      </p>
 
       <h1 class="display title">Đập Chuột</h1>
       <p class="lead">Đập trúng chuột được 1 điểm.<br>Bạn có 30 giây!</p>
@@ -74,5 +114,6 @@
 </main>
 
 <script src="game.js"></script>
+<script src="signup.js"></script>
 </body>
 </html>

@@ -1,0 +1,16 @@
+{
+  "name": "dap-chuot",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Game Đập Chuột + đăng ký người chơi và trang admin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "pg": "8.13.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
